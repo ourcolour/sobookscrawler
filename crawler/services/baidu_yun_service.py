@@ -18,16 +18,20 @@
 +-------------------------------------------------
 '''
 __author__ = 'cc'
+
 import json
 import os
 import os.path
+import time
 
 from selenium.webdriver import DesiredCapabilities
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from crawler import configs
 from crawler.services.base_web_driver_service import BaseWebDriverService
+from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
 
 class BaiduYunBiz(object):
@@ -81,12 +85,12 @@ class BaiduYunBiz(object):
 		return result
 
 	@classmethod
-	def login(cls, driver, wait):
+	def login(cls, driver, wait, start_page=None):
 		result = False
 
 		# Redirect to login page
 		# driver.get('http://ccyao.net')
-		driver.get('https://yun.baidu.com')
+		driver.get(start_page)
 
 		# Load cookies
 		cls._load_cookies(driver, wait)
@@ -101,8 +105,8 @@ class BaiduYunBiz(object):
 			driver.get(driver.current_url)
 
 			# New a customize wait obj for user manually login action,
-			# and set maximum wait timeout to 30 seconds.
-			login_wait = WebDriverWait(driver, 30)
+			# and set maximum wait timeout to 120 seconds.
+			login_wait = WebDriverWait(driver, 120)
 
 			# Wait until user log-in manual
 			login_wait.until(EC.url_contains('disk/home'))
@@ -118,9 +122,72 @@ class BaiduYunBiz(object):
 
 		return result
 
+	@classmethod
+	def save_to_yun(cls, driver, wait, download_task, netdisk_folder_name=None):
+		result = False
+
+		# Parse download task
+		res_url = download_task.baiduUrl
+		secret = download_task.secret
+
+		# Fetch
+		if None is res_url or len(res_url) < 1:
+			return result
+
+		try:
+			# Open the resource page
+			driver.get(res_url)
+
+			# Wait until user log-in manual
+			wait.until(EC.url_contains('share/init'))
+
+			# Fill the form with secret
+			driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/input[@type="text"]').send_keys(secret)
+
+			# Submit the form by clicking
+			driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/div/a[@title="提取文件"]').click()
+
+			# Wait until save file page displayed
+			wait.until(EC.presence_of_element_located((By.XPATH, '//li[@data-key="server_filename"]/div'))).click()
+
+			# Click button [保存到网盘]
+			driver.find_element_by_xpath('//a[@title="保存到网盘"]').click()
+
+			# Wait until treeview displayed
+			ul_treeview_root_content = wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'treeview-root-content')))
+			div_treeview_root = driver.find_element_by_class_name('treeview-root')
+
+			# Save the treeview controls for later using
+			treeview_list_item_map = {}
+			treeview_list_item_array = ul_treeview_root_content.find_elements_by_tag_name('li')
+			for item in treeview_list_item_array:
+				treeview_list_item_map[item.text] = item
+
+			# Find and select the treeview item by specified folder name
+			if None is netdisk_folder_name or (netdisk_folder_name not in treeview_list_item_map.keys()):
+				print('Target folder "{}" not found, save the resource to root node.'.format(netdisk_folder_name))
+				div_treeview_root.click()
+			else:
+				treeview_list_item_map[netdisk_folder_name].click()
+
+			# Find buttons
+			div_dialog_footer = driver.find_element_by_class_name('dialog-footer')
+			btn_confirm = div_dialog_footer.find_element_by_xpath('//a[@title="确定"]')
+			btn_cancel = div_dialog_footer.find_element_by_xpath('//a[@title="取消"]')
+			btn_new_folder = div_dialog_footer.find_element_by_xpath('//a[@title="新建文件夹"]')
+
+			# Click button [确定]
+			btn_confirm.click()
+
+			result = True
+		except Exception as ex:
+			print('[ERROR] url: {}. {}'.format(result, ex))
+
+		return result
+
 
 class BaiduYunService(BaseWebDriverService):
-	_domain = 'yun.baidu.com'
+	_domain = 'pan.baidu.com'
 
 	def prepare_desired_capabilities(self):
 		capabilities = DesiredCapabilities.FIREFOX.copy()
@@ -128,10 +195,52 @@ class BaiduYunService(BaseWebDriverService):
 		# capabilities['pageLoadStrategy'] = 'normal'
 		return capabilities
 
-	def save_to_yun(self, from_url=None, to_rel_path='/'):
-		# Do login first
-		if not BaiduYunBiz.login(self._driver, self._wait):
+	@classmethod
+	def query_tasks(cls, filter):
+		return DownloadTaskMongoBiz.find(filter=filter)
+
+	def save_one(self, download_task, netdisk_folder_name='08_book_newincome'):
+		result = False
+
+		# Do login
+		if not BaiduYunBiz.login(self._driver, self._wait, self.build_url()):
 			raise RuntimeError('Failed to login')
 
-		# Fetch
-		print('--- PROCESS ---')
+		# Do saving
+		result = BaiduYunBiz.save_to_yun(self._driver, self._wait, download_task, netdisk_folder_name)
+
+		return result
+
+	def save_many(self, download_task_list=[], netdisk_folder_name=None):
+		if None is download_task_list or len(download_task_list) < 1:
+			raise ValueError('No download task to run')
+
+		# Do login
+		if not BaiduYunBiz.login(self._driver, self._wait, self.build_url()):
+			raise RuntimeError('Failed to login')
+
+		# Do saving and count affected record(s)
+		total = len(download_task_list)
+		succeeded_list = []
+		failed_list = []
+		for idx, download_task in enumerate(download_task_list):
+			ok = BaiduYunBiz.save_to_yun(self._driver, self._wait, download_task, netdisk_folder_name)
+
+			if ok:
+				succeeded_list.append(download_task)
+			else:
+				failed_list.append(download_task)
+
+			print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
+				idx + 1,
+				total,
+				' OK' if ok else 'ERR',
+				download_task.title,
+				download_task.secret,
+				download_task.baiduUrl
+			))
+
+			time.sleep(0.2)
+		print('------------------')
+		print('Batch saving task finished with: {} success(es), {} failure(s).'.format(len(succeeded_list), len(failed_list)))
+		print('------------------')

@@ -66,7 +66,6 @@ class DownloadTaskMongoBiz(object):
 		criteria = {'$or': sub_criteria}
 
 		doc = BaseMongoDA.find_one(cls._db, cls._col, criteria)
-
 		if None is not doc:
 			doc = DownloadTask.dict_to_obj(doc)
 
@@ -77,5 +76,15 @@ class DownloadTaskMongoBiz(object):
 		return BaseMongoDA.find_one(cls._db, cls._col, filter)
 
 	@classmethod
-	def find(cls, filter):
-		return BaseMongoDA.find(cls._db, cls._col, filter)
+	def find(cls, filter={}, sort=None, skip=None, limit=None):
+		result = []
+
+		doc_list = BaseMongoDA.find(cls._db, cls._col, filter, sort, skip, limit)
+
+		if None is not doc_list and len(doc_list) > 0:
+			for doc in doc_list:
+				obj = DownloadTask.dict_to_obj(doc)
+				if None is not obj:
+					result.append(obj)
+
+		return result

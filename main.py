@@ -19,15 +19,26 @@
 '''
 __author__ = 'cc'
 
+from datetime import datetime
+
 from crawler.services.baidu_yun_service import BaiduYunService
-from crawler.services.sobooks_crawler_service import SobooksCrawlerService
 
 
 def main():
+	netdisk_folder_name = '08_book_newincome'
+	from_date = datetime.strptime('2019-05-4', '%Y-%m-%d')
+	to_date = datetime.strptime('2019-05-25', '%Y-%m-%d')
+	filter = {'$and': [
+		{'publishTime': {'$gte': from_date}},
+		{'publishTime': {'$lte': to_date}},
+	]}
+
 	with BaiduYunService() as svs:
-		svs.save_to_yun()
-	return
-	SobooksCrawlerService.new_range_tasks(1, 15)
+		download_task_list = svs.query_tasks(filter=filter)
+		svs.save_many(download_task_list, netdisk_folder_name=netdisk_folder_name)
+
+
+# SobooksCrawlerService.new_range_tasks(1, 15)
 
 
 if __name__ == '__main__':

@@ -107,20 +107,29 @@ class BaseMongoDA:
 		return result
 
 	@classmethod
-	def find(cls, db, col, filter=None):
+	def find(cls, db, col, filter={}, sort=None, skip=None, limit=None):
 		if None is db:
 			raise ValueError('Invalid database value.')
 		if None is col:
 			raise ValueError('Invalid collection value.')
 
-		result = None
+		result = []
 
 		with cls.__connect__() as conn:
 			col = conn.get_database(db).get_collection(col)
-			if None is not filter:
-				result = col.find(filter)
-			else:
-				result = col.find()
+			# if None is not filter:
+			# 	cursor = col.find(filter)
+			# else:
+			# 	cursor = col.find()
+			with col.find(filter) as cursor:
+				if None is not sort:
+					cursor = cursor.sort(sort)
+				if None is not skip:
+					cursor = cursor.skip(skip)
+				if None is not limit:
+					cursor = cursor.limit(limit)
+				for doc in cursor:
+					result.append(doc)
 
 		return result
 

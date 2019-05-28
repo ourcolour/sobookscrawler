@@ -24,29 +24,39 @@ from datetime import datetime
 from crawler.services.baidu_yun_service import BaiduYunService
 
 
-def main():
-	netdisk_folder_name = '08_book_newincome'
-	from_date = datetime.strptime('2019-05-4', '%Y-%m-%d')
-	to_date = datetime.strptime('2019-05-25', '%Y-%m-%d')
-	filter = {'$and': [
-		{'publishTime': {'$gte': from_date}},
-		{'publishTime': {'$lte': to_date}},
-	]}
+def test_user_agent():
+    from fake_useragent import UserAgent
+    ua = UserAgent()
 
-	with BaiduYunService() as svs:
-		download_task_list = svs.query_tasks(filter=filter)
-		svs.save_many(download_task_list, netdisk_folder_name=netdisk_folder_name)
+    for i in range(1, 100):
+        print('{} - {}'.format(i, ua.random))
+
+    return
+
+
+def main():
+    netdisk_folder_name = '08_book_newincome'
+    from_date = datetime.strptime('2019-05-4', '%Y-%m-%d')
+    to_date = datetime.strptime('2019-05-25', '%Y-%m-%d')
+    filter = {'$and': [
+        {'publishTime': {'$gte': from_date}},
+        {'publishTime': {'$lte': to_date}},
+    ]}
+
+    with BaiduYunService() as svs:
+        download_task_list = svs.query_tasks(filter=filter)
+        svs.save_many(download_task_list, netdisk_folder_name=netdisk_folder_name)
 
 
 # SobooksCrawlerService.new_range_tasks(1, 15)
 
 
 if __name__ == '__main__':
-	main()
+    main()
 
 
 def _code_generator():
-	a = '''
+    a = '''
 		@property
 		def <<>>(self):
 			return self._<<>>
@@ -56,19 +66,19 @@ def _code_generator():
 			self._<<>> = value
 	'''
 
-	lst = [
-		'title',
-		'author',
-		'baiduUrl',
-		'ctUrl',
-		'createTime',
-		'inTime',
-		'isbn',
-		'secret',
-		'formats',
-		'tags',
-	]
+    lst = [
+        'title',
+        'author',
+        'baiduUrl',
+        'ctUrl',
+        'createTime',
+        'inTime',
+        'isbn',
+        'secret',
+        'formats',
+        'tags',
+    ]
 
-	for l in lst:
-		print(a.replace('<<>>', l, -1))
-		print('')
+    for l in lst:
+        print(a.replace('<<>>', l, -1))
+        print('')

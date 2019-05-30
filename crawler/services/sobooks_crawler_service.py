@@ -29,6 +29,95 @@ from crawler.services.biz.detail_page_biz import DetailPageBiz
 from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
 
+class SobooksCrawlerExecutor(BaseWebDriverService):
+	@classmethod
+	def new_range_tasks(cls, from_page=1, to_page=None):
+		if None is to_page or to_page < from_page or to_page < 1:
+			to_page = from_page
+
+		# Fetch every list pages in range
+		with SobooksCrawlerService() as svs:
+			list_page_urls = []
+			for list_page_no in range(from_page, to_page):
+				list_page_urls.extend(svs._list_page(list_page_no))
+
+		# Initialize
+		dispatch_task_array = []
+		for i in range(0, configs.MAX_THREAD_COUNT):
+			dispatch_task_array.append([])
+
+		# Seperate task
+		for idx, url in enumerate(list_page_urls):
+			bound = idx % configs.MAX_THREAD_COUNT
+			dispatch_task_array[bound].append(url)
+
+		thread_array = []
+		with concurrent.futures.ThreadPoolExecutor(max_workers=configs.MAX_THREAD_COUNT) as executor:
+			def run(thread_id, task_list):
+				time.sleep(0.2)
+
+				added = 0
+				updated = 0
+				error = 0
+
+				with SobooksCrawlerService() as svs:
+					# Calculate progress
+					current = 1
+					total = len(task_list)
+					bits = str(len(str(total)))
+
+					# Fetch every detail pages
+					for url in task_list:
+						download_task, code = svs._detail_page(url)
+
+						if 'e' == code:
+							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]  {}'
+							print(fmt.format(
+								thread_id,
+								current,
+								total,
+								code.upper(),
+								'Record skipped, because of no download url found.',
+							))
+						else:
+							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]   《{}》 - {}'
+							print(fmt.format(
+								thread_id,
+								current,
+								total,
+								code.upper(),
+								download_task.title,
+								download_task.author,
+							))
+
+						current += 1
+
+						if 'a' == code:
+							added += 1
+						elif 'u' == code:
+							updated += 1
+						elif 'e' == code:
+							error += 1
+
+				return added, updated, error
+
+			for i in range(0, configs.MAX_THREAD_COUNT):
+				task_list = dispatch_task_array[i]
+				trd = executor.submit(run, i + 1, task_list)
+				thread_array.append(trd)
+
+		for trd in concurrent.futures.as_completed(thread_array):
+			try:
+				added, updated, error = trd.result()
+			except Exception as e:
+				print('[ERR] %s' % e)
+			else:
+				print('[ OK] Added: {}, Update: {}, Error: {}'.format(added, updated, error))
+
+
+# print('%s has %d bytes!' % (resp.url, len(resp.text)))
+
+
 class SobooksCrawlerService(BaseWebDriverService):
 	_domain = 'sobooks.cc'
 
@@ -99,111 +188,3 @@ class SobooksCrawlerService(BaseWebDriverService):
 		hasCtUrl = not (None is download_task.ctUrl or len(download_task.ctUrl) < 1)
 
 		return hasBaiduUrl or hasCtUrl
-
-	@classmethod
-	def new_range_tasks(cls, from_page=1, to_page=None):
-		if None is to_page or to_page < from_page or to_page < 1:
-			to_page = from_page
-
-		# Fetch every list pages in range
-		with SobooksCrawlerService() as svs:
-			list_page_urls = []
-			for list_page_no in range(from_page, to_page):
-				list_page_urls.extend(svs._list_page(list_page_no))
-
-		# Fetch every detail pages
-		# for url in list_page_urls:
-		# 	download_task, code = self._detail_page(url)
-		#
-		# 	fmt = '{:>' + bits + 'd}/{:>' + bits + 'd} [{}]   《{}》 - {}'
-		# 	print(fmt.format(
-		# 		current,
-		# 		total,
-		# 		code.upper(),
-		# 		download_task.title,
-		# 		download_task.author,
-		# 	))
-		#
-		# 	current += 1
-
-		# Initialize
-		dispatch_task_array = []
-		for i in range(0, configs.MAX_THREAD_COUNT):
-			dispatch_task_array.append([])
-
-		# Seperate task
-		for idx, url in enumerate(list_page_urls):
-			bound = idx % configs.MAX_THREAD_COUNT
-			dispatch_task_array[bound].append(url)
-
-		# Execute task
-		# current = 0
-		# total = len(list_page_urls)
-		# for i in range(0, MAX_THREAD_COUNT):
-		# 	for url in dispatch_task_array[i]:
-		# 		current += 1
-		# 		print('{}/{} - IDX: {} - {}'.format(current, total, i, url))
-
-		thread_array = []
-		with concurrent.futures.ThreadPoolExecutor(max_workers=configs.MAX_THREAD_COUNT) as executor:
-			def run(thread_id, task_list):
-				time.sleep(0.2)
-
-				added = 0
-				updated = 0
-				error = 0
-
-				with SobooksCrawlerService() as svs:
-					# Calculate progress
-					current = 1
-					total = len(task_list)
-					bits = str(len(str(total)))
-
-					# Fetch every detail pages
-					for url in task_list:
-						download_task, code = svs._detail_page(url)
-
-						if 'e' == code:
-							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]  {}'
-							print(fmt.format(
-								thread_id,
-								current,
-								total,
-								code.upper(),
-								'Record skipped, because of no download url found.',
-							))
-						else:
-							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]   《{}》 - {}'
-							print(fmt.format(
-								thread_id,
-								current,
-								total,
-								code.upper(),
-								download_task.title,
-								download_task.author,
-							))
-
-						current += 1
-
-						if 'a' == code:
-							added += 1
-						elif 'u' == code:
-							updated += 1
-						elif 'e' == code:
-							error += 1
-
-				return added, updated, error
-
-			for i in range(0, configs.MAX_THREAD_COUNT):
-				task_list = dispatch_task_array[i]
-				trd = executor.submit(run, i + 1, task_list)
-				thread_array.append(trd)
-
-		for trd in concurrent.futures.as_completed(thread_array):
-			try:
-				added, updated, error = trd.result()
-			except Exception as e:
-				print('[ERR] %s' % e)
-			else:
-				print('[ OK] Added: {}, Update: {}, Error: {}'.format(added, updated, error))
-# print('%s has %d bytes!' % (resp.url, len(resp.text)))

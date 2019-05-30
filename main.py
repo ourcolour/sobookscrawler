@@ -35,28 +35,41 @@ def test_user_agent():
 
 
 def main():
-    netdisk_folder_name = '08_book_newincome'
-    from_date = datetime.strptime('2019-05-4', '%Y-%m-%d')
-    to_date = datetime.strptime('2019-05-25', '%Y-%m-%d')
-    filter = {'$and': [
-        {'publishTime': {'$gte': from_date}},
-        {'publishTime': {'$lte': to_date}},
-    ]}
+	# Fatch newer
+	# SobooksCrawlerExecutor.new_range_tasks(1, 1)
 
-    with BaiduYunService() as svs:
-        download_task_list = svs.query_tasks(filter=filter)
-        svs.save_many(download_task_list, netdisk_folder_name=netdisk_folder_name)
+	# Download newer
+	with BaiduYunService() as svs:
+		netdisk_folder_name = '08_book_newincome'
+		from_date = datetime.strptime('2019-05-01', '%Y-%m-%d')
+		to_date = datetime.strptime('2019-05-5', '%Y-%m-%d')
+
+		download_task_list = svs.query_tasks(
+			filter={'$and': [
+				{'publishTime': {'$gte': from_date}},
+				# {'publishTime': {'$lte': to_date}},
+			]},
+			sort=[
+				('publishTime', -1),
+				('inTime', 1),
+			],
+		)
+
+		for idx, t in enumerate(download_task_list):
+			print('{:>3d}# 《{}》 {}'.format(idx + 1, t.title, t.baiduUrl))
+
+		svs.save_many(download_task_list, netdisk_folder_name=netdisk_folder_name)
 
 
 # SobooksCrawlerService.new_range_tasks(1, 15)
 
 
 if __name__ == '__main__':
-    main()
+	main()
 
 
 def _code_generator():
-    a = '''
+	a = '''
 		@property
 		def <<>>(self):
 			return self._<<>>
@@ -66,19 +79,19 @@ def _code_generator():
 			self._<<>> = value
 	'''
 
-    lst = [
-        'title',
-        'author',
-        'baiduUrl',
-        'ctUrl',
-        'createTime',
-        'inTime',
-        'isbn',
-        'secret',
-        'formats',
-        'tags',
-    ]
+	lst = [
+		'title',
+		'author',
+		'baiduUrl',
+		'ctUrl',
+		'createTime',
+		'inTime',
+		'isbn',
+		'secret',
+		'formats',
+		'tags',
+	]
 
-    for l in lst:
-        print(a.replace('<<>>', l, -1))
-        print('')
+	for l in lst:
+		print(a.replace('<<>>', l, -1))
+		print('')

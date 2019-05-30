@@ -138,6 +138,15 @@ class BaiduYunBiz(object):
 			# Open the resource page
 			driver.get(res_url)
 
+			'''
+			Check the resource existing status
+			'''
+			div_share_nofound_des_list = driver.find_elements_by_xpath('//div[@id="share_nofound_des"]')
+			if None is not div_share_nofound_des_list and len(div_share_nofound_des_list) > 0:
+				raise RuntimeError('Resource not exists')
+			'''
+			Enter secret form
+			'''
 			# Wait until user log-in manual
 			wait.until(EC.url_contains('share/init'))
 
@@ -147,6 +156,9 @@ class BaiduYunBiz(object):
 			# Submit the form by clicking
 			driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/div/a[@title="提取文件"]').click()
 
+			'''
+			Save file treeview form
+			'''
 			# Wait until save file page displayed
 			wait.until(EC.presence_of_element_located((By.XPATH, '//li[@data-key="server_filename"]/div'))).click()
 
@@ -181,7 +193,7 @@ class BaiduYunBiz(object):
 
 			result = True
 		except Exception as ex:
-			print('[ERROR] url: {}. {}'.format(result, ex))
+			print('[ERROR] url: {}. {}'.format(res_url, ex))
 
 		return result
 
@@ -196,8 +208,8 @@ class BaiduYunService(BaseWebDriverService):
 		return capabilities
 
 	@classmethod
-	def query_tasks(cls, filter):
-		return DownloadTaskMongoBiz.find(filter=filter)
+	def query_tasks(cls, filter, sort={}):
+		return DownloadTaskMongoBiz.find(filter=filter, sort=sort)
 
 	def save_one(self, download_task, netdisk_folder_name='08_book_newincome'):
 		result = False
@@ -224,21 +236,31 @@ class BaiduYunService(BaseWebDriverService):
 		succeeded_list = []
 		failed_list = []
 		for idx, download_task in enumerate(download_task_list):
-			ok = BaiduYunBiz.save_to_yun(self._driver, self._wait, download_task, netdisk_folder_name)
-
-			if ok:
-				succeeded_list.append(download_task)
+			if (idx + 1) <= 154:
+				print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
+					idx + 1,
+					total,
+					'SKP',
+					download_task.title,
+					download_task.secret,
+					download_task.baiduUrl
+				))
 			else:
-				failed_list.append(download_task)
+				ok = BaiduYunBiz.save_to_yun(self._driver, self._wait, download_task, netdisk_folder_name)
 
-			print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
-				idx + 1,
-				total,
-				' OK' if ok else 'ERR',
-				download_task.title,
-				download_task.secret,
-				download_task.baiduUrl
-			))
+				if ok:
+					succeeded_list.append(download_task)
+				else:
+					failed_list.append(download_task)
+
+				print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
+					idx + 1,
+					total,
+					' OK' if ok else 'ERR',
+					download_task.title,
+					download_task.secret,
+					download_task.baiduUrl
+				))
 
 			time.sleep(0.2)
 		print('------------------')

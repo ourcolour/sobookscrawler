@@ -35,6 +35,7 @@ TASK_WAIT_TIMEOUT = 3 * 1000
 
 MAX_THREAD_COUNT = 1
 
-COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'bin', 'cookie.json')
-# '/Users/cc/Desktop/sobookscrawler/bin/cookie.json'
-# COOKIE_PATH = '/Users/cc/Desktop/sobookscrawler/bin/cookie.json'
+BAIDU_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'bin', 'baidu-cookie.json')
+# '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
+# COOKIE_PATH = '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
+DOUBAN_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'bin', 'douban-cookie.json')

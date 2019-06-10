@@ -54,7 +54,7 @@ class BaiduYunBiz(object):
 		cookies = driver.get_cookies()
 
 		# Save cookie
-		with open(configs.COOKIE_PATH, 'w+') as file_handler:
+		with open(configs.BAIDU_COOKIE_PATH, 'w+') as file_handler:
 			json_string = json.dumps(cookies)
 			file_handler.write(json_string)
 
@@ -63,10 +63,10 @@ class BaiduYunBiz(object):
 		result = None
 
 		# Whether cookie file exists
-		if os.path.exists(configs.COOKIE_PATH):
+		if os.path.exists(configs.BAIDU_COOKIE_PATH):
 			try:
 				# Load cookie
-				with open(configs.COOKIE_PATH) as file_handler:
+				with open(configs.BAIDU_COOKIE_PATH) as file_handler:
 					# Load cookies from local json file
 					cookies = json.loads(file_handler.readline())
 					# Assign cookies to web driver
@@ -223,7 +223,7 @@ class BaiduYunService(BaseWebDriverService):
 
 		return result
 
-	def save_many(self, download_task_list=[], netdisk_folder_name=None):
+	def save_many(self, download_task_list=[], netdisk_folder_name=None, skip=0):
 		if None is download_task_list or len(download_task_list) < 1:
 			raise ValueError('No download task to run')
 
@@ -236,7 +236,7 @@ class BaiduYunService(BaseWebDriverService):
 		succeeded_list = []
 		failed_list = []
 		for idx, download_task in enumerate(download_task_list):
-			if (idx + 1) <= 154:
+			if (idx + 1) <= skip:
 				print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
 					idx + 1,
 					total,

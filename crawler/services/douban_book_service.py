@@ -19,295 +19,21 @@
 '''
 __author__ = 'cc'
 
-import json
-import os
+import random
 import re
-import sys
-from datetime import datetime
+import time
 
-from selenium.webdriver import ActionChains
+import flask as ext
+from prettytable import PrettyTable
 from selenium.webdriver import DesiredCapabilities
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver import Proxy
+from selenium.webdriver.common.proxy import ProxyType
 
 from crawler import configs
 from crawler.entities.book import Book
 from crawler.services.base_web_driver_service import BaseWebDriverService
-
-
-class DoubanBookBiz(object):
-	@classmethod
-	def _save_cookies(cls, driver, wait):
-		# Fetch cookies from web driver
-		cookies = driver.get_cookies()
-
-		# Save cookie
-		with open(configs.DOUBAN_COOKIE_PATH, 'w+') as file_handler:
-			json_string = json.dumps(cookies)
-			file_handler.write(json_string)
-
-	@classmethod
-	def _load_cookies(cls, driver, wait):
-		result = None
-
-		# Whether cookie file exists
-		if os.path.exists(configs.DOUBAN_COOKIE_PATH):
-			try:
-				# Load cookie
-				with open(configs.BAIDU_COOKIE_PATH) as file_handler:
-					# Load cookies from local json file
-					cookies = json.loads(file_handler.readline())
-					# Assign cookies to web driver
-					driver.delete_all_cookies()
-					for cookie in cookies:
-						driver.add_cookie(cookie)
-					# Refresh after cookies loaded
-					driver.get(driver.current_url)
-
-					result = cookies
-				pass
-			except Exception as ex:
-				print('[ERR] method: _load_cookies(): ' + ex)
-				pass
-
-		return result
-
-	@classmethod
-	def _has_logged_in(cls, driver, wait) -> bool:
-		# Check via page source
-		return len(driver.find_elements_by_xpath('//div[@class="top-nav-info"]/a[@class="nav-login"]')) > 0
-
-	@classmethod
-	def login(cls, driver, wait, start_page=None) -> bool:
-		result = False
-
-		# Redirect to login page
-		# driver.get('http://ccyao.net')
-		driver.get(start_page)
-
-		# Load cookies
-		cls._load_cookies(driver, wait)
-
-		# Check login status
-		result = cls._has_logged_in(driver, wait)
-
-		# If not logged in,
-		# go on log-in action and save cookies
-		if not result:
-			# Redirect to login page
-			driver.get(driver.current_url)
-
-			# New a customize wait obj for user manually login action,
-			# and set maximum wait timeout to 120 seconds.
-			login_wait = WebDriverWait(driver, 120)
-
-			# Wait until user log-in manual
-			login_wait.until_not(EC.presence_of_element_located(By.XPATH, '//div[@class="top-nav-info"]/a[@class="nav-login"]'))
-
-			# Save cookie to local json file
-			cls._save_cookies(driver, wait)
-
-			# Check login status again
-			result = cls._has_logged_in(driver, wait)
-
-		return result
-
-	@classmethod
-	def _get_intro_info(cls, driver, wait, ref_book) -> bool:
-		result = True
-
-		# Expend all book info before fetch
-		a_expand_list = driver.find_elements_by_link_text('(展开全部)')
-		a_more_list = driver.find_elements_by_link_text('更多')
-		a_list = a_expand_list
-		a_list.extend(a_more_list)
-		print('Found links:{}, include 展开全部: {} 更多: {} .'.format(
-			len(a_list),
-			len(a_expand_list),
-			len(a_more_list)
-		))
-
-		for a in a_list:
-			if None is not a:
-				try:
-					# Scroll to the view and move to the element
-					# to make sure target element 'hover' state,
-					# then perform 'click' action.
-					driver.execute_script("arguments[0].scrollIntoView(false);", a)
-					ActionChains(driver).move_to_element(a).click().perform()
-				except Exception as ex:
-					target_dir = os.path.join(os.path.dirname(sys.argv[0], 'bin', 'screenshot'))
-					if not os.path.exists(target_dir):
-						os.makedirs(target_dir)
-					prefix = ref_book.id + '_' + datetime.strftime('%Y%m%d_%H%M%S')
-					snapshot_path = '{}.{}'.format(prefix, 'png')
-					html_path = '{}.{}'.format(prefix, 'html')
-
-					print('Save snapshot: {}'.format(driver.save_screenshot(snapshot_path)))
-					with open(html_path, 'w+') as fp:
-						fp.write(driver.page_source)
-					print('Got exception during clicking "Expanding links"' + ex)
-
-					result = False
-					pass
-
-		# Related info (内容简介 / 作者简介 / 目录)
-		h2_span_list = driver.find_elements_by_xpath('//div[@class="related_info"]/h2')
-		for h2_span in h2_span_list:
-			h2_span_text = h2_span.text.replace('  · · · · · ·', '').strip()
-			if '内容简介' == h2_span_text:
-				ref_book.summary = h2_span.find_element_by_xpath('following-sibling::div').text
-			elif '作者简介' == h2_span_text:
-				ref_book.author_intro = h2_span.find_element_by_xpath('following-sibling::div').text
-			elif '目录' == h2_span_text:
-				ref_book.catalog = h2_span.find_element_by_xpath('following-sibling::div').text
-			else:
-				print('H2 "{}" was not unsupported.'.format(h2_span_text))
-				result = False
-
-		return result
-
-	@classmethod
-	def _get_rating_info(cls, driver, wait, ref_book) -> bool:
-		result = True
-
-		# Default value
-		num_raters = 0
-		average = 0.0
-		percent_dict = ref_book.build_stars_percent()
-
-		# If exists rating
-		if len(driver.find_elements_by_link_text('评价人数不足')) < 1:
-			average = float(driver.find_element_by_xpath('//strong[@property="v:average"]').text)
-			num_raters = int(driver.find_element_by_xpath('//span[@property="v:votes"]').text)
-
-			# Average star
-			star = 0
-			for i in range(50, -1, -5):
-				found = len(driver.find_elements_by_class_name('bigstar{}'.format(i))) > 0
-				if found:
-					star = i
-					break
-
-			# Rating percent for different star level
-			rating_per_element_list = driver.find_elements_by_class_name('rating_per')
-			count = len(rating_per_element_list)
-			for i in range(0, count):
-				no = count - i
-				percent_dict[no] = float(rating_per_element_list[i].text.replace('%', '').strip())
-
-		# Assign values
-		ref_book.rating = ref_book.build_rating(average=average, num_raters=num_raters, star=star, percents=percent_dict)
-
-		return result
-
-	@classmethod
-	def _get_basic_info(cls, driver, wait, ref_book) -> bool:
-		result = True
-
-		# Title
-		ref_book.title = driver.find_element_by_xpath('//h1/span').text
-		# Other info
-		try:
-			info_array = driver.find_element_by_xpath('//div[@id="info"]').text.split('\n')
-			for info in info_array:
-				if None is info:
-					continue
-				kv_arr = info.strip().split(': ')
-				if len(kv_arr) < 2:
-					continue
-
-				ok = True
-				key = kv_arr[0].strip()
-				value = kv_arr[1].strip()
-
-				if '作者' == key:
-					if None is ref_book.author:
-						ref_book.author = []
-
-					v_arr = value.split('/')
-					for v in v_arr:
-						v = v.strip()
-						if None is v or len(v) < 1:
-							continue
-						ref_book.author.append(v)
-				elif '出版社' == key:
-					ref_book.publisher = value
-				elif '出品方' == key:
-					ref_book.producer = value
-				elif '原作名' == key:
-					ref_book.origin_title = value
-				elif '副标题' == key:
-					ref_book.subtitle = value
-				elif '译者' == key:
-					ref_book.translator = value
-				elif '出版年' == key:
-					fmt = None
-					if re.match('^\d{4}-\d{1,2}-\d{1,2}$', value):
-						fmt = '%Y-%m-%d'
-					elif re.match('^\d{4}-\d{1,2}-$', value):
-						fmt = '%Y-%m'
-					if None is not fmt:
-						ref_book.pubdate = datetime.strptime(value, fmt)
-					pass
-				elif '页数' == key:
-					ref_book.pages = value  # int(value)
-				elif '定价' == key:
-					print('定价: {}'.format(value))
-					value = value.replace('元', '') \
-						.replace('CNY', '') \
-						.replace('元', '') \
-						.strip()
-					ref_book.pages = float(value)
-				elif '装帧' == key:
-					ref_book.binding = value
-				elif '丛书' == key:
-					ref_book.series = value
-				elif 'ISBN' == key:
-					ref_book.isbn13 = value
-				else:
-					ok = False
-
-				if not ok:
-					ref_book.debug_memo += '{} => {}\n'.format(key, value)
-					print('[{:>3}] {:>10} => {}'.format(' OK' if ok else 'ERR', key, value))
-					result = False
-				pass
-		except Exception as ex:
-			ref_book.debug_memo += ex
-			print('Failed to parse "Other info:, with exception: \n{}"'.format(ex))
-			result = False
-
-		return result
-
-	@classmethod
-	def get_book(cls, driver, wait, url) -> Book:
-		result = None
-
-		try:
-			# Open the resource page
-			driver.get(url)
-
-			# New book instance
-			result = Book()
-			result.referer = url
-			result.id = url.split('/')[-2]
-			# Basic info
-			ok = cls._get_basic_info(driver, wait, result)
-			# Intro info
-			ok = cls._get_intro_info(driver, wait, result)
-			# Rating info
-			ok = cls._get_rating_info(driver, wait, result)
-
-			pass
-		except Exception as ex:
-			print('[ERROR] url: {}. {}'.format(url, ex))
-
-		return result
-
-
-# Do login process
+from crawler.services.biz.book_mongo_biz import BookMongoBiz
+from crawler.services.biz.douban_book_biz import DoubanBookBiz
 
 
 class DoubanBookService(BaseWebDriverService):
@@ -317,11 +43,214 @@ class DoubanBookService(BaseWebDriverService):
 		capabilities = DesiredCapabilities.FIREFOX.copy()
 		capabilities['javascriptEnabled'] = True
 		# capabilities['pageLoadStrategy'] = 'normal'
+		capabilities['pageLoadStrategy'] = 'normal'
+
+		# Set proxy
+		proxy_string = configs.RANDOM_PROXY(return_tuple=False)
+		proxy = Proxy()
+		proxy.proxy_type = ProxyType.MANUAL
+		proxy.http_proxy = proxy_string
+		proxy.ssl_proxy = proxy_string
+		# proxy.ftp_proxy = proxy_string
+		# prox.socks_proxy = proxy_string
+		# proxy.add_to_capabilities(capabilities)
+
 		return capabilities
 
-	def get_book(self, id):
-		# Build url
-		url = self.build_url(path='/subject/{}/'.format(id))
-		book = DoubanBookBiz.get_book(driver=self.driver, wait=self.wait, url=url)
+	def find_duplicate_by(self, field='isbn13'):
+		result = []
 
-# print(book.__dict__)
+		duplicate_fields_dict = {}
+		book_list = BookMongoBiz.find(filter=None, sort=(field, 1))
+		for book in book_list:
+			# author_str = ''
+			# for a in book.authors:
+			# 	if len(author_str) > 0:
+			# 		author_str += ', '
+			# 	author_str += a
+			# print('{} -《{}》 {}'.format(book.isbn13, book.title, author_str))
+
+			field_value = getattr(book, field)
+			if field_value in duplicate_fields_dict:
+				duplicate_fields_dict[field_value] += 1
+			else:
+				duplicate_fields_dict[field_value] = 1
+			pass
+
+		for k, v in duplicate_fields_dict.items():
+			if v < 2:
+				continue
+			print('{} -> {}'.format(k, v))
+
+		return
+
+	def get_book_id_by_isbn13(self, isbn13):
+		# https://book.douban.com/subject_search?search_text=%3Cisbn%3E&cat=1001
+		result = list()
+
+		try:
+			# Arguments
+			if None is isbn13 or len(isbn13.strip()) < 1:
+				raise ValueError('Invalid argument `isbn13`.')
+			isbn13 = isbn13.strip()
+
+			isbn13_regex = re.compile(r'9787\d{9}')
+			if not isbn13_regex.match(isbn13):
+				raise ValueError('Not a valid isbn13 value: `{}`.'.format(isbn13))
+
+			# Visit search page
+			isbn13 = ext.helpers.url_quote(isbn13)
+			self.driver.get(self.build_url(path='/subject_search?search_text={}&cat=1001'.format(isbn13)))
+
+			# Build regex
+			book_id_regex = re.compile(r'^' + self.build_url(path='/subject/') + r'(\d+)/$', re.I)
+
+			# Fetch all items
+			title_link_list = self.driver.find_elements_by_class_name('title-text')
+			for link in title_link_list:
+				if None is link:
+					continue
+
+				# href="https://book.douban.com/subject/25987952/"
+				href = link.get_attribute('href')
+				# Fetch `book_id` value via regex
+				m = book_id_regex.match(href)
+				if m:
+					book_id = int(m.groups()[0])
+					if book_id > 0:
+						result.append(book_id)
+					else:
+						print('Invalid href: {}'.format(href))
+		except Exception as ex:
+			print('[ERR] url: {}. {}'.format(self.driver.current_url, ex))
+
+		return {
+			'book_id_list': result,
+			'isbn13': isbn13,
+			'referer': self.driver.current_url,
+		}
+
+	def get_book_list(self, book_id_list):
+		result = list()
+
+		# Fetch books
+		rnd = random.Random()
+		for book_id in book_id_list:
+			result.append(self.get_book(book_id))
+
+			# Sleep a while
+			sec_to_sleep = rnd.randint(1, 5)
+			print('Sleep {} second(s).'.format(sec_to_sleep))
+			time.sleep(sec_to_sleep)
+
+		# Initialize table # 'authors',
+		tbl = PrettyTable()
+		# , 'title'
+		tbl.field_names = ['isbn13', 'basic', 'intro', 'tags', 'rating', '--all--', 'db-action', 'message']
+		# Set align
+		tbl.align['title'] = 'l'
+
+		# Prepare table row
+		for book, status_dict, ex in result:
+			# Prepare content
+			column_values = list()
+			for column in tbl.field_names:
+				display = None
+
+				if 'isbn13' == column:
+					display = book.isbn13
+				elif 'title' == column:
+					display = book.title
+				elif 'authors' == column:
+					display = ''
+					if None is not book.authors and len(book.authors) > 0:
+						display = book.authors[0]
+						if len(book.authors) > 1:
+							display += ' ...'
+				elif 'db-action' == column:
+					display = status_dict['db-action']
+				elif 'message' == column:
+					display = status_dict['message']
+				elif column in status_dict.keys():
+					status = status_dict.get(column)
+					if status:
+						display = '○'  # '●○√'
+					else:
+						display = '×'  # '×'
+				else:
+					continue
+				column_values.append(display)
+				pass
+			tbl.add_row(column_values)
+
+		# Print
+		print(tbl)
+
+		return result
+
+	def get_book(self, book_id):
+		result = None
+		status_dict = dict()
+		ex = None
+
+		try:
+			# Visit info page
+			self.driver.get(self.build_url(path='/subject/{}/'.format(book_id)))
+
+			# New book instance
+			result = Book()
+			result.book_id = book_id
+			result.referer = self.driver.current_url
+			result.url = self.driver.current_url
+
+			# Initialize status_dict
+			status_dict['basic'] = False
+			status_dict['intro'] = False
+			status_dict['tags'] = False
+			status_dict['rating'] = False
+			status_dict['--all--'] = False
+			status_dict['message'] = '-'
+			status_dict['db-action'] = '-'
+
+			# Basic info
+			status_dict['basic'] = DoubanBookBiz.get_basic_info(self.driver, self.wait, result)
+			# Intro info
+			status_dict['intro'] = DoubanBookBiz.get_intro_info(self.driver, self.wait, result)
+			# Tags info
+			status_dict['tags'] = DoubanBookBiz.get_tags_info(self.driver, self.wait, result)
+			# Rating info
+			status_dict['rating'] = DoubanBookBiz.get_rating_info(self.driver, self.wait, result)
+
+			# Visit comment page
+			self.driver.get(self.build_url(path='/subject/{}/collections'.format(book_id)))
+			# Collections info
+			status_dict['collections'] = DoubanBookBiz.get_collections_info(self.driver, self.wait, result)
+
+			status_dict['--all--'] = True
+			for ok in status_dict.values():
+				if not ok:
+					status_dict['--all--'] = False
+					break
+
+			status_dict['message'] = '-'
+			status_dict['db-action'] = '-'
+			if status_dict['--all--']:
+				# Check existance by isbn13
+				old_book = BookMongoBiz.find_one(filter={'isbn13': result.isbn13})
+				if None is not old_book:
+					result, affected = BookMongoBiz.update_by_entity(Book.dict_to_obj(old_book), result)
+					status_dict['db-action'] = 'U'
+				else:
+					result = BookMongoBiz.add(result)
+					status_dict['db-action'] = 'A'
+			else:
+				status_dict['message'] = 'Got error during get_book'
+				raise Exception(status_dict['message'])
+		except Exception as exc:
+			ex = exc
+			print('[ERR] url: {}. {}'.format(self.driver.current_url, ex))
+
+		return result, status_dict, ex
+
+	def save_book(self, book):
+		return BookMongoBiz.add(book)

@@ -7,65 +7,60 @@
 @Contact:       yaochen@xjh.com
 @Site:          http://www.xjh.com
 @Project:       sobookscrawler
-@File:          base_entity.py
+@File:          base_api_controller.py
 @Version:       
-@Time:          2019-06-06 15:22
+@Time:          2019-07-02 09:51
 @Description:   TO-DO
 +-------------------------------------------------
 @Change Activity:
-1.  Created at  2019-06-06 15:22
+1.  Created at  2019-07-02 09:51
 2.  TO-DO
 +-------------------------------------------------
 '''
 __author__ = 'cc'
 
-import bson
-from bson import json_util
 import importlib
 
-class BaseEntity(object):
-	_id = None
-	_inTime = None
-	_editTime = None
+from flask import make_response, jsonify
+from flask_restful import Resource
 
-	@property
-	def id(self):
-		return self._id
+'''
+RESTfulResponse
+---------------------------
+'''
+INFO = 0
+WARNING = INFO - 1
+ERROR = INFO - 2
 
-	@id.setter
-	def id(self, value):
-		self._id = value
 
-	@property
-	def inTime(self):
-		return self._inTime
+class RESTfulResponse(object):
+	def __init__(self, code, message, data=None):
+		self.code = code
+		self.message = message
+		self.data = data
 
-	@inTime.setter
-	def inTime(self, value):
-		self._inTime = value
+	@classmethod
+	def _build(cls, code, message, data=None):
+		return RESTfulResponse(code=code, message=message, data=data)
 
-	@property
-	def editTime(self):
-		return self._editTime
+	@classmethod
+	def build_info(cls, data=None):
+		return cls._build(code=INFO, message='OK', data=data)
 
-	@editTime.setter
-	def editTime(self, value):
-		self._editTime = value
+	@classmethod
+	def build_warning(cls, message='Warning', data=None):
+		return cls._build(code=WARNING, message=message, data=data)
 
-	def __init__(self):
-		pass
+	@classmethod
+	def build_error(cls, message='Error', data=None):
+		return cls._build(code=ERROR, message=message, data=data)
 
-	# def __init__(self, title, author, baiduUrl, ctUrl, publishTime, inTime, isbn, secret, formats, tags):
-	# 	self._title = title
-	# 	self._author = author
-	# 	self._baiduUrl = baiduUrl
-	# 	self._ctUrl = ctUrl
-	# 	self._publishTime = publishTime
-	# 	self._inTime = inTime
-	# 	self._isbn = isbn
-	# 	self._secret = secret
-	# 	self._formats = formats
-	# 	self._tags = tags
+	def to_json(self):
+		return {
+			'code': self.code,
+			'message': self.message,
+			'data': self.data,
+		}
 
 	def obj_to_dict(self, needPropertyNotField=True):
 		result = {}
@@ -102,12 +97,12 @@ class BaseEntity(object):
 
 		return result
 
-	def to_json(self):
-		obj = self.obj_to_dict(self)
-		return bson.json_util.dumps(obj)
 
-	@classmethod
-	def from_json(cls, json_string):  # , module_name=None, class_name=None):
-		dic = bson.json_util.loads(json_string)
-		obj = cls.dict_to_obj(dic)  # , module_name=module_name, class_name=class_name):
-		return obj
+'''
+BaseApiController
+'''
+
+
+class BaseApiController(Resource):
+	def build_response(self, data=None, code=200):
+		return make_response(jsonify(data.obj_to_dict()), code)

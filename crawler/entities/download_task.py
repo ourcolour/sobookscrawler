@@ -17,7 +17,7 @@
 2.  TO-DO
 +-------------------------------------------------
 '''
-__author__ = 'cc'
+__authors__ = 'cc'
 
 import bson
 from bson import json_util
@@ -27,7 +27,7 @@ from crawler.entities.base_entity import BaseEntity
 class DownloadTask(BaseEntity):
     _referer = None
     _title = None
-    _author = None
+    _authors = None
     _baiduUrl = None
     _ctUrl = None
     _publishTime = None
@@ -53,12 +53,12 @@ class DownloadTask(BaseEntity):
         self._title = value
 
     @property
-    def author(self):
-        return self._author
+    def authors(self):
+	    return self._authors
 
-    @author.setter
-    def author(self, value):
-        self._author = value
+    @authors.setter
+    def authors(self, value):
+	    self._authors = value
 
     @property
     def baiduUrl(self):

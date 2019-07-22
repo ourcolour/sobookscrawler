@@ -21,7 +21,7 @@ __author__ = 'cc'
 
 import concurrent.futures
 import time
-from datetime import datetime
+from datetime import date
 
 from crawler import configs
 from crawler.services.base_web_driver_service import BaseWebDriverService
@@ -30,8 +30,95 @@ from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
 
 class SobooksCrawlerExecutor(BaseWebDriverService):
+
 	@classmethod
-	def new_range_tasks(cls, from_page=1, to_page=None):
+	def new_range_tasks_by_publish_time(cls, to_date):
+		# Arguments
+		if None is to_date:
+			to_date = date.today()
+
+		# Result
+		thread_id = 1
+		added = 0
+		updated = 0
+		error = 0
+
+		# Calculate progress
+		current = 1
+		total = 1  # len(detail_page_urls)
+		bits = 3  # str(len(str(total)))
+
+		# Start fetching from page No.1,
+		# stop until book `publishTime` great than or equal `to_date`
+		with SobooksCrawlerService() as svs:
+			# From first page
+			running = True
+			list_page_no = 1
+
+			# Fetching loop
+			while running:
+				print('Fetching list-page #{}'.format(list_page_no))
+
+				# Fetch list pages, extract detail-page urls
+				detail_page_urls = svs._list_page(list_page_no)
+
+				# Fetch every detail pages
+				for url in detail_page_urls:
+					time.sleep(0.2)
+
+					download_task, code = svs._detail_page(url)
+
+					if 'e' == code:
+						fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]  {}'
+						print(fmt.format(
+							thread_id,
+							current,
+							total,
+							code.upper(),
+							'Record skipped, because of no download url found.',
+						))
+					else:
+						fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
+						print(fmt.format(
+							thread_id,
+							current,
+							total,
+							code.upper(),
+							download_task.title,
+							download_task.authors[0],
+						))
+
+					current += 1
+					total += 1
+
+					if 'a' == code:
+						added += 1
+					elif 'u' == code:
+						updated += 1
+					elif 'e' == code:
+						error += 1
+
+					# Check `publishTime`
+					if download_task.publishTime.date() < to_date:
+						print('Found invalid publishTime `{}` in list-page #{}, exit loop ...'.format(
+							download_task.publishTime.strftime('%Y-%m-%d'),
+							list_page_no
+						))
+
+						# Break while-loop
+						running = False
+						break
+
+				# Next page
+				list_page_no += 1
+
+		# Print result
+		print('[ OK] Added: {}, Update: {}, Error: {}'.format(added, updated, error))
+
+		return added, updated, error
+
+	@classmethod
+	def new_tasks_by_page_range(cls, from_page=1, to_page=None):
 		if None is to_page or to_page < from_page or to_page < 1:
 			to_page = from_page
 
@@ -64,14 +151,14 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 					# Calculate progress
 					current = 1
 					total = len(task_list)
-					bits = str(len(str(total)))
+					bits = len(str(total))
 
 					# Fetch every detail pages
 					for url in task_list:
 						download_task, code = svs._detail_page(url)
 
 						if 'e' == code:
-							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]  {}'
+							fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]  {}'
 							print(fmt.format(
 								thread_id,
 								current,
@@ -80,14 +167,14 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 								'Record skipped, because of no download url found.',
 							))
 						else:
-							fmt = 'Thread#{:>2} - {:>' + bits + 'd}/{:>' + bits + 'd} [{}]   《{}》 - {}'
+							fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
 							print(fmt.format(
 								thread_id,
 								current,
 								total,
 								code.upper(),
 								download_task.title,
-								download_task.author,
+								download_task.authors,
 							))
 
 						current += 1
@@ -161,19 +248,12 @@ class SobooksCrawlerService(BaseWebDriverService):
 			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task)
 			if None is old_download_task:
 				# Not exists do insert
-				download_task.inTime = datetime.now()
-				download_task.id = DownloadTaskMongoBiz.add(download_task)
-
-				result = download_task
+				result = DownloadTaskMongoBiz.add(download_task)
 
 				return (result, 'a')
 			else:
 				# Exists do replace(update)
-				download_task.editTime = datetime.now()
-				download_task.id = old_download_task.id
-				DownloadTaskMongoBiz.update_by_id(download_task.id, download_task)
-
-				result = download_task
+				result, affected = DownloadTaskMongoBiz.update_by_entity(old_download_task, download_task)
 
 				return (result, 'u')
 		else:

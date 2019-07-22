@@ -63,12 +63,7 @@ class DetailPageBiz:
 			if '书名' == key:
 				result.title = value
 			elif '作者' == key:
-				author_arr = list()
-				if isinstance(value, str):
-					author_arr.append(value)
-				else:
-					author_arr = value
-				result.authors = author_arr
+				result.author = value
 			elif '格式' == key:
 				result.formats = value.split('/')
 			elif '标签' == key:

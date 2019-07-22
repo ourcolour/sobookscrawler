@@ -24,19 +24,21 @@ from crawler.entities.base_entity import BaseEntity
 
 class Book(BaseEntity):
 	_id = None
+	_book_id = None
 	_alt = None
 	_alt_title = None
-	_author = []
+	_authors = None
 	_author_intro = None
 	_binding = None
 	_catalog = None
-	_cips = []
+	_cips = None
 	_image = None
-	_images = {
-		'small': None,
-		'medium': None,
-		'large': None,
-	}
+	_images = None
+	# {
+	# 	'small': None,
+	# 	'medium': None,
+	# 	'large': None,
+	# }
 	_isbn10 = None
 	_isbn13 = None
 	_origin_title = None
@@ -45,22 +47,37 @@ class Book(BaseEntity):
 	_pubdate = None
 	_publisher = None
 	_producer = None
-	_rating = {
-		'average': 0.0,
-		'max': 0.0,
-		'min': 0.0,
-		'numRaters': 0,
-	}
+	_rating = None
+	# {
+	# 	'average': 0.0,
+	# 	'max': 0.0,
+	# 	'min': 0.0,
+	# 	'numRaters': 0,
+	# 	'star': 0.0,
+	# 	'percents': {
+	# 		0: 0.0,  # zero,
+	# 		1: 0.0,  # one,
+	# 		2: 0.0,  # two,
+	# 		3: 0.0,  # three,
+	# 		4: 0.0,  # four,
+	# 		5: 0.0,  # five,
+	# 	},
+	# 	'collections': {
+	# 		'wishies': 0,
+	# 		'doings': 0,
+	# 		'collections': 0,
+	# 	}
+	# }
 	_subtitle = None
 	_summary = None
-	_tags = []
+	_tags = None
 	_title = None
 	_translator = None
 	_url = None
 	_series = None
-
-	_debug_memo = None
 	_referer = None
+
+	_debug_memo = ''
 
 	@property
 	def id(self):
@@ -69,6 +86,14 @@ class Book(BaseEntity):
 	@id.setter
 	def id(self, value):
 		self._id = value
+
+	@property
+	def book_id(self):
+		return self._book_id
+
+	@book_id.setter
+	def book_id(self, value):
+		self._book_id = value
 
 	@property
 	def alt(self):
@@ -87,12 +112,12 @@ class Book(BaseEntity):
 		self._alt_title = value
 
 	@property
-	def author(self):
-		return self._author
+	def authors(self):
+		return self._authors
 
-	@author.setter
-	def author(self, value):
-		self._author = value
+	@authors.setter
+	def authors(self, value):
+		self._authors = value
 
 	@property
 	def author_intro(self):
@@ -139,12 +164,8 @@ class Book(BaseEntity):
 		return self._images
 
 	@images.setter
-	def images(self, small=None, medium=None, large=None):
-		self._images = {
-			'small': small,
-			'medium': medium,
-			'large': large,
-		}
+	def images(self, value):
+		self._images = value
 
 	@property
 	def isbn10(self):
@@ -218,28 +239,6 @@ class Book(BaseEntity):
 	def rating(self, rating):
 		self._rating = rating
 
-	@classmethod
-	def build_stars_percent(cls, zero=0.0, one=0.0, two=0.0, three=0.0, four=0.0, five=0.0):
-		return {
-			0: zero,
-			1: one,
-			2: two,
-			3: three,
-			4: four,
-			5: five,
-		}
-
-	@classmethod
-	def build_rating(cls, average=0.0, min=0.0, max=0.0, num_raters=0, star=0.0, percents=None):
-		return {
-			'average': average,
-			'min': min,
-			'max': max,
-			'numRaters': num_raters,
-			'star': star,
-			'percents': percents if None is not percents else cls.build_stars_percent(),
-		}
-
 	@property
 	def subtitle(self):
 		return self._subtitle
@@ -311,3 +310,50 @@ class Book(BaseEntity):
 	@referer.setter
 	def referer(self, value):
 		self._referer = value
+
+	@classmethod
+	def build_stars_percent(cls, zero=0.0, one=0.0, two=0.0, three=0.0, four=0.0, five=0.0):
+		return dict({
+			'0': zero,
+			'1': one,
+			'2': two,
+			'3': three,
+			'4': four,
+			'5': five,
+		})
+
+	@classmethod
+	def build_rating(cls, average=0.0, min=0.0, max=0.0, num_raters=0, star=0.0, percents=None, collections=None):
+		return dict({
+			'average': average,
+			'min': min,
+			'max': max,
+			'numRaters': num_raters,
+			'star': star,
+			'percents': percents if None is not percents else cls.build_stars_percent(),
+			'collections': collections if None is not collections else cls.build_collections(),
+		})
+
+	@classmethod
+	def build_tags(cls, name, title=None, count=0):
+		return dict({
+			'name': name,
+			'title': title if None is not title and len(title) > 0 else name,
+			'count': count,
+		})
+
+	@classmethod
+	def build_collections(cls, wishes=0, doings=0, collections=0):
+		return dict({
+			'wishes': wishes,
+			'doings': doings,
+			'collections': collections,
+		})
+
+	@classmethod
+	def build_images(cls, small=None, medium=None, large=None):
+		return dict({
+			'small': small,
+			'medium': medium,
+			'large': large,
+		})

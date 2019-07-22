@@ -79,7 +79,7 @@ class BaiduYunBiz(object):
 					result = cookies
 				pass
 			except Exception as ex:
-				print('[ERR] method: _load_cookies(): ' + ex)
+				print('[ERR] method: _load_cookies(): {}', ex)
 				pass
 
 		return result
@@ -115,6 +115,7 @@ class BaiduYunBiz(object):
 			cls._save_cookies(driver, wait)
 
 			# Check login status again
+			driver.refresh()
 			result = cls._has_logged_in(driver, wait)
 
 		# Save cookies if and only if login successfully

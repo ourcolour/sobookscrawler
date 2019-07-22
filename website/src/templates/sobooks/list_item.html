@@ -1,0 +1,47 @@
+{% if book_list.items and book_list.items|length > 0 %}
+    {# 有记录 #}
+    {% for book in book_list.items %}
+        <tr>
+            <td>{{ book.isbn|default('', boolean=True)|truncate(10) }}</td>
+            <td>{{ book.title|default('', boolean=True)|truncate(10) }}</td>
+            <td>{{ book.author|default('', boolean=True)|truncate(10) }}</td>
+            <td><a class="btn btn-info btn-secret" href="javascript:;">{{ book.secret }}</a></td>
+            <td>
+                {% if book.baiduUrl and book.baiduUrl|length > 0 %}
+                    <a href="{{ book.baiduUrl }}" target="_blank">百度</a>
+                {% endif %}
+                {% if book.ctUrl and book.ctUrl|length > 0 %}
+                    <a href="{{ book.ctUrl }}" target="_blank">城通</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% else %}
+    {# 没记录 #}
+    <tr>
+        <td colspan="5"><span class="text-center">没有记录</span></td>
+    </tr>
+{% endif %}
+<tr>
+    <td colspan="5" style="text-align: center;">
+        <nav aria-label="sss">
+            <ul class="pager">
+                <li>
+                    {% if book_list.has_prev %}
+                        <a id="btnPrev" href="javascript:;" data-page-no="{{ book_list.prev_num }}">Prev</a>
+                    {% else %}
+                        <a id="btnPrev" href="javascript:;" data-page-no="{{ book_list.page }}">Prev</a>
+                    {% endif %}
+                </li>
+                <li>{{ book_list.page }}&nbsp;/&nbsp;{{ book_list.pages }}</li>
+                <li>
+                    {% if book_list.has_next %}
+                        <a id="btnNext" href="javascript:;" data-page-no="{{ book_list.next_num }}">Next</a>
+                    {% else %}
+                        <a id="btnNext" href="javascript:;" data-page-no="{{ book_list.page }}">Next</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+    </td>
+</tr>

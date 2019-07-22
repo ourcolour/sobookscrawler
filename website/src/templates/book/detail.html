@@ -1,0 +1,117 @@
+{% include 'common/header.html' %}
+<div class="row">
+    <div class="col-md-12">
+        <h1>Book Shelf</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+
+    </div>
+    <div class="col-md-9">
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <form class="form-inline">
+                    <label for="keyword">查询：</label>
+                    <input id="txtKeyword" type="text" class="form-control">
+                    <a id="btnQuery" href="javascript:;" class="btn btn-default">查询</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Query Result</h3>
+            </div>
+            <table id="tbl-data" class="table table-bordered panel-body">
+                <thead>
+                <tr>
+                    <th>ISBN</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Secret</th>
+                    <th>BaiDu</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% include 'sobooks/list_item.html' %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        /* Functions Defination */
+        function query(keyword, pageNo) {
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for("list_ajax") }}',
+                data: {
+                    'keyword': keyword,
+                    'page_no': pageNo,
+                },
+                success: function (data, status, xhr) {
+                    $('#tbl-data > tbody').html(data);
+                },
+                error: function () {
+                    console.log('ERR')
+                },
+            });
+        }
+
+        /* Actions Bindings */
+        // Initialize - Auto Focus
+        $('#txtKeyword').focus();
+
+        // txtKeyword - KeyPress
+        $('#txtKeyword').keypress(function (e) {
+            if (e.which == 13) {
+                $('#btnQuery').click();
+                e.preventDefault();
+                return;
+            }
+        });
+        // btnQuery
+        $('#btnQuery').click(function () {
+            var _keyword = $('#txtKeyword').val();
+            var _pageNo = 1;
+            query(_keyword, _pageNo);
+        });
+        // btnPrev, btnNext
+        $(document).on('click', 'ul.pager li a', function () {
+            var _keyword = $('#txtKeyword').val();
+            var _pageNo = parseInt($(this).attr('data-page-no'));
+            query(_keyword, _pageNo);
+        });
+
+        /* ClipboardJS */
+        // Initialize tooltips with options
+        $('.btn-secret').tooltip({
+            placement: 'top',
+            trigger: 'manual',
+            title: '已经复制！',
+        });
+        // Trigger actions
+        new ClipboardJS('.btn-secret', {
+            text: function (trigger) {
+                // Delay a while then hide the tooltip
+                $(trigger).tooltip('show');
+                setTimeout(function () {
+                    $(trigger).tooltip('hide');
+                }, 1000 * .5);
+
+                // Return text
+                return $(trigger).html();
+            }
+        });
+    });
+</script>
+{% include 'common/footer.html' %}

@@ -30,8 +30,8 @@ from selenium.webdriver import Proxy
 from selenium.webdriver.common.proxy import ProxyType
 
 from crawler import configs
-from crawler.entities.book import Book
-from crawler.services.base_web_driver_service import BaseWebDriverService
+from crawler.entities.book_model import BookModel
+from crawler.services.bases.base_web_driver_service import BaseWebDriverService
 from crawler.services.biz.book_mongo_biz import BookMongoBiz
 from crawler.services.biz.douban_book_biz import DoubanBookBiz
 
@@ -57,11 +57,11 @@ class DoubanBookService(BaseWebDriverService):
 
 		return capabilities
 
-	def find_duplicate_by(self, field='isbn13'):
+	def find_duplicate_by(self, field=('isbn13')):
 		result = []
 
 		duplicate_fields_dict = {}
-		book_list = BookMongoBiz.find(filter=None, sort=(field, 1))
+		book_list = BookMongoBiz.find(criteria=None, sort=field)
 		for book in book_list:
 			# author_str = ''
 			# for a in book.authors:
@@ -94,7 +94,7 @@ class DoubanBookService(BaseWebDriverService):
 				raise ValueError('Invalid argument `isbn13`.')
 			isbn13 = isbn13.strip()
 
-			isbn13_regex = re.compile(r'9787\d{9}')
+			isbn13_regex = re.compile(r'978\d{10}')
 			if not isbn13_regex.match(isbn13):
 				raise ValueError('Not a valid isbn13 value: `{}`.'.format(isbn13))
 
@@ -198,7 +198,7 @@ class DoubanBookService(BaseWebDriverService):
 			self.driver.get(self.build_url(path='/subject/{}/'.format(book_id)))
 
 			# New book instance
-			result = Book()
+			result = BookModel()
 			result.book_id = book_id
 			result.referer = self.driver.current_url
 			result.url = self.driver.current_url
@@ -236,9 +236,9 @@ class DoubanBookService(BaseWebDriverService):
 			status_dict['db-action'] = '-'
 			if status_dict['--all--']:
 				# Check existance by isbn13
-				old_book = BookMongoBiz.find_one(filter={'isbn13': result.isbn13})
+				old_book = BookMongoBiz.find_one(criteria={'isbn13': result.isbn13})
 				if None is not old_book:
-					result, affected = BookMongoBiz.update_by_entity(Book.dict_to_obj(old_book), result)
+					result = BookMongoBiz.update_by_entity(old_book, result)
 					status_dict['db-action'] = 'U'
 				else:
 					result = BookMongoBiz.add(result)

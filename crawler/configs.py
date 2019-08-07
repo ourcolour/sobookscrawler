@@ -53,7 +53,8 @@ def RANDOM_PROXY(return_tuple=True):
 		return result
 
 
-MONGO_HOST = '192.168.2.91'
+# MONGO_HOST = '192.168.2.91'
+MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
 MONGO_PORT = 27018
 
 MONGO_DATABASE = 'DoubanBookApi'

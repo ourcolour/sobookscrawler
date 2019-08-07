@@ -21,10 +21,11 @@ __author__ = 'cc'
 
 import concurrent.futures
 import time
-from datetime import date
+from datetime import date, datetime
 
-from crawler import configs
-from crawler.services.base_web_driver_service import BaseWebDriverService
+import crawler.configs as  cfg
+from crawler.services.bases.base_mongodb_service import BaseMongodbService
+from crawler.services.bases.base_web_driver_service import BaseWebDriverService
 from crawler.services.biz.detail_page_biz import DetailPageBiz
 from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
@@ -36,6 +37,8 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 		# Arguments
 		if None is to_date:
 			to_date = date.today()
+		if isinstance(to_date, datetime):
+			to_date = to_date.date()
 
 		# Result
 		thread_id = 1
@@ -130,16 +133,16 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 
 		# Initialize
 		dispatch_task_array = []
-		for i in range(0, configs.MAX_THREAD_COUNT):
+		for i in range(0, cfg.MAX_THREAD_COUNT):
 			dispatch_task_array.append([])
 
 		# Seperate task
 		for idx, url in enumerate(list_page_urls):
-			bound = idx % configs.MAX_THREAD_COUNT
+			bound = idx % cfg.MAX_THREAD_COUNT
 			dispatch_task_array[bound].append(url)
 
 		thread_array = []
-		with concurrent.futures.ThreadPoolExecutor(max_workers=configs.MAX_THREAD_COUNT) as executor:
+		with concurrent.futures.ThreadPoolExecutor(max_workers=cfg.MAX_THREAD_COUNT) as executor:
 			def run(thread_id, task_list):
 				time.sleep(0.2)
 
@@ -188,7 +191,7 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 
 				return added, updated, error
 
-			for i in range(0, configs.MAX_THREAD_COUNT):
+			for i in range(0, cfg.MAX_THREAD_COUNT):
 				task_list = dispatch_task_array[i]
 				trd = executor.submit(run, i + 1, task_list)
 				thread_array.append(trd)
@@ -205,8 +208,32 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 # print('%s has %d bytes!' % (resp.url, len(resp.text)))
 
 
-class SobooksCrawlerService(BaseWebDriverService):
+class SobooksCrawlerService(BaseWebDriverService, BaseMongodbService):
 	_domain = 'sobooks.cc'
+
+	'''
+	Initialization
+	'''
+
+	def __init__(self, alias=cfg.MONGO_DATABASE, db=cfg.MONGO_DATABASE):
+		# Init web browser
+		BaseWebDriverService.__init__(self)
+		# Init mongodb
+		BaseMongodbService.__init__(self, alias=alias, db=db)
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, *args, **kwargs):
+		# Close web browser
+		BaseWebDriverService.__exit__(self, args, kwargs)
+		# Disconnect
+		BaseMongodbService.__exit__(self, args, kwargs)
+		pass
+
+	'''
+	Functions
+	'''
 
 	def _list_page(self, page_no=1):
 		result = []
@@ -245,7 +272,7 @@ class SobooksCrawlerService(BaseWebDriverService):
 		# Check download url
 		if self._has_download_url(download_task):
 			# Check duplicate records via fields: baiduUrl or ctUrl
-			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task)
+			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task.baiduUrl, download_task.ctUrl)
 			if None is old_download_task:
 				# Not exists do insert
 				result = DownloadTaskMongoBiz.add(download_task)
@@ -253,7 +280,7 @@ class SobooksCrawlerService(BaseWebDriverService):
 				return (result, 'a')
 			else:
 				# Exists do replace(update)
-				result, affected = DownloadTaskMongoBiz.update_by_entity(old_download_task, download_task)
+				result = DownloadTaskMongoBiz.update_by_entity(old_download_task, download_task)
 
 				return (result, 'u')
 		else:

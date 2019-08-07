@@ -37,8 +37,9 @@ class BaseWebDriverService(object):
 	_user_agent = UserAgent().Firefox
 	# _user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:67.0) Gecko/20100101 Firefox/67.0'
 
-	_domain = None
 	_protocol = None
+	_domain = None
+	_port = 80
 
 	_driver = None
 	_wait = None
@@ -81,7 +82,7 @@ class BaseWebDriverService(object):
 	def __enter__(self):
 		return self
 
-	def __exit__(self, *args):
+	def __exit__(self, *args, **kwargs):
 		self._driver.quit()
 
 	@abstractmethod
@@ -113,13 +114,22 @@ class BaseWebDriverService(object):
 			# service_log_path=None,
 		)
 
-	def build_url(self, domain=None, protocol=DEFAULT_PROTOCOL, path=None):
+	def build_url(self, domain=None, protocol=DEFAULT_PROTOCOL, path=None, port=None):
 		if None is not protocol and len(protocol) > 0:
 			self._protocol = protocol
 		if None is not domain and len(domain) > 0:
 			self._domain = domain
+		if None is not port and (port > 0 and port != 80):
+			self._port = port
 
+		# Protocol & domain
 		result = '{}://{}'.format(self._protocol, self._domain)
+
+		# Port
+		if 80 != self._port:
+			result = '{}:{}'.format(result, self._port)
+
+		# Path
 		if None is not path and len(path) > 0:
 			if '/' != path[0]:
 				path = '/' + path

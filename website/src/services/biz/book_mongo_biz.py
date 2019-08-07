@@ -19,9 +19,9 @@
 '''
 __author__ = 'cc'
 
-from crawler.entities.book import Book
-from crawler.services.biz.base_mong_biz import BaseMongoBiz
-from crawler.services.biz.base_mongo_da import BaseMongoDA
+from crawler.entities.book_model import Book
+from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
+from crawler.services.biz.bases.base_mongo_da import BaseMongoDA
 
 
 class BookMongoBiz(BaseMongoBiz):

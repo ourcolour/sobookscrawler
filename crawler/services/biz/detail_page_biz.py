@@ -24,7 +24,7 @@ from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
-from crawler.entities.download_task import DownloadTask
+from crawler.entities.download_task_model import DownloadTaskModel
 
 
 class DetailPageBiz:
@@ -49,7 +49,7 @@ class DetailPageBiz:
 
 	@classmethod
 	def get_book_info(cls, driver, wait, validate_code):
-		result = DownloadTask()
+		result = DownloadTaskModel()
 
 		# Source page url
 		result.referer = driver.current_url
@@ -92,7 +92,7 @@ class DetailPageBiz:
 			pass
 		try:
 			result.ctUrl = driver.find_element_by_link_text('城通网盘（备用）').get_attribute('href')
-			result.ctUrl = result.baiduUrl.replace('https://sobooks.cc/go.html?url=', '')
+			result.ctUrl = result.ctUrl.replace('https://sobooks.cc/go.html?url=', '')
 		except:
 			pass
 

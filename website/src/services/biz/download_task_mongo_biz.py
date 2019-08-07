@@ -20,8 +20,8 @@
 __author__ = 'cc'
 
 from crawler.entities.download_task import DownloadTask
-from crawler.services.biz.base_mong_biz import BaseMongoBiz
-from crawler.services.biz.base_mongo_da import BaseMongoDA
+from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
+from crawler.services.biz.bases.base_mongo_da import BaseMongoDA
 
 
 class DownloadTaskMongoBiz(BaseMongoBiz):

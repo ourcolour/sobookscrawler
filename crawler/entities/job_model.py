@@ -23,22 +23,31 @@ from mongoengine import *
 
 from crawler.entities.base_model import BaseModel
 
-TASK_STATUS = {
-	'base': -2,
-	'draft': -1,
-	'ready': 0,
-	'running': 1,
-	'finished': 2,
-	'failed': 3,
+S_BASE = -2
+S_DRAFT = -1
+S_READY = 0
+S_RUNNING = 1
+S_FINISHED = 2
+S_FAILED = 3
+
+JOB_STATUS = {
+	'base': S_BASE,
+	'draft': S_DRAFT,
+	'ready': S_READY,
+	'running': S_RUNNING,
+	'finished': S_FINISHED,
+	'failed': S_FAILED,
 }
 
-S_BASE = TASK_STATUS['base']
-S_DRAFT = TASK_STATUS['draft']
-S_READY = TASK_STATUS['ready']
-S_RETRY = TASK_STATUS['ready']
-S_RUNNING = TASK_STATUS['running']
-S_FINISHED = TASK_STATUS['finished']
-S_FAILED = TASK_STATUS['failed']
+T_BASE = 0
+T_SEARCH_BY_ISBN = 1
+T_FETCH_CIP_BY_ISBN = 2
+
+JOB_TYPE = {
+	'base': T_BASE,
+	'search_by_isbn': T_SEARCH_BY_ISBN,
+	'fetch_cip_by_isbn': T_FETCH_CIP_BY_ISBN,
+}
 
 
 class Execution(EmbeddedDocument):
@@ -49,17 +58,22 @@ class Execution(EmbeddedDocument):
 	message = StringField()
 
 
-class CrawlerTaskModel(BaseModel):
+class JobInfo(EmbeddedDocument):
+	book_id = IntField(min_value=1)
+	isbn13 = StringField(min_length=13, max_length=13, regex=r'^978\d{10}$')
+	referer = StringField(regex=r'^https?://.+$', )
+
+
+class JobModel(BaseModel):
 	meta = {
-		'collection': 'sl_crawler_task',
+		'collection': 'sl_job',
 	}
 
-	book_id = IntField(min_value=1)
-	isbn13 = StringField(min_length=13, max_length=13, regex=r'^9787\d{9}$')
-	referer = StringField(regex=r'^https?://.+$', )
 	status = IntField()
+	executions = ListField(EmbeddedDocumentField(Execution))
 
 	left_count = IntField(min_value=0)
 	retried_count = IntField(min_value=0)
 
-	executions = ListField(EmbeddedDocumentField(Execution))
+	job_type = IntField(choices=(T_SEARCH_BY_ISBN, T_FETCH_CIP_BY_ISBN, T_BASE))
+	job_info = DictField()

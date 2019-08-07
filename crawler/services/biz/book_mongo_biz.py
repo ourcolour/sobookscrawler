@@ -19,28 +19,43 @@
 '''
 __author__ = 'cc'
 
-from crawler.entities.book import Book
-from crawler.services.biz.base_mong_biz import BaseMongoBiz
-from crawler.services.biz.base_mongo_da import BaseMongoDA
+from crawler.entities.book_model import BookModel
+
+from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
 
 
-class BookMongoBiz(BaseMongoBiz):
-	_db = 'DoubanBookApi'
-	_col = 'sl_book_info'
+class BookMongoBiz(BaseMongoBiz[BookModel]):
+	pass
 
-	# @classmethod
-	# def find_all(cls, filter={}, sort=None, skip=None, limit=None):
-
-	@classmethod
-	def find(cls, filter={}, sort=None, skip=None, limit=None):
-		result = []
-
-		doc_list = BaseMongoDA.find(cls._db, cls._col, filter, sort, skip, limit)
-
-		if None is not doc_list and len(doc_list) > 0:
-			for doc in doc_list:
-				obj = Book.dict_to_obj(doc)
-				if None is not obj:
-					result.append(obj)
-
-		return result
+# _db = 'DoubanBookApi'
+# _col = 'sl_book_info'
+#
+# @classmethod
+# def find_one(cls, criteria={}, sort=None):
+# 	doc = BookModel.objects(__raw__=criteria)
+# 	if sort:
+# 		doc = doc.order_by(sort)
+# 	doc = doc.first()
+# 	return doc
+#
+# @classmethod
+# def find(cls, criteria={}, sort=None, skip=None, limit=None):
+# 	result = []
+#
+# 	# doc_list = BaseMongoDA.find(cls._db, cls._col, filter, sort, skip, limit)
+# 	doc_list = BookModel.objects(__raw__=criteria)
+# 	if sort:
+# 		doc_list = doc_list.order_by(sort)
+# 	if skip:
+# 		doc_list = doc_list.skip(skip)
+# 	if limit:
+# 		doc_list = doc_list.limit(limit)
+# 	# BaseMongoDA.find(cls._db, cls._col, filter, sort, skip, limit)
+#
+# 	if None is not doc_list and len(doc_list) > 0:
+# 		for doc in doc_list:
+# 			obj = Book.dict_to_obj(doc)
+# 			if None is not obj:
+# 				result.append(obj)
+#
+# 	return result

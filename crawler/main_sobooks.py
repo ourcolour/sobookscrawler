@@ -38,7 +38,7 @@ def fetch_from_sobooks_site(since_date):
 		since_date = datetime.strptime(since_date, '%Y%m%d').date()
 
 	# Fetch newer
-	SobooksCrawlerExecutor.new_range_tasks_by_publish_time(since_date)
+	# SobooksCrawlerExecutor.new_range_tasks_by_publish_time(since_date)
 
 	# def t():
 	# Download newer
@@ -48,15 +48,11 @@ def fetch_from_sobooks_site(since_date):
 		# to_date = datetime.strptime('2019-07-01', '%Y%m%d')
 		# d = from_date.strftime('%Y-%m-%d')
 		download_task_list = svs.query_tasks(
-			filter={'$and': [
-				{'editTime': {'$exists': 0}},
+			criteria={'$and': [
+				# {'editTime': {'$exists': 0}},
 				{'publishTime': {'$gte': from_date}},
 				# {'publishTime': {'$lte': to_date}},
-			]},
-			sort=[
-				('publishTime', -1),
-				('inTime', 1),
-			],
+			]}
 		)
 
 		for idx, t in enumerate(download_task_list):
@@ -70,6 +66,7 @@ def fetch_from_sobooks_site(since_date):
 @click.option('--since-date', '-s', type=str, default=datetime.now().strftime('%Y%m%d'),
               help='Fetch the books which `publishTime` value since (and include) since_date value')
 def command_dispatcher(action, since_date):
+	since_date = datetime.strptime(since_date, '%Y%m%d')
 	if 'fetch' == action.lower():
 		fetch_from_sobooks_site(since_date)
 	else:
@@ -77,4 +74,5 @@ def command_dispatcher(action, since_date):
 
 
 if __name__ == '__main__':
+	# return
 	command_dispatcher()

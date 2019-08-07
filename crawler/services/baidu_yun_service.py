@@ -17,6 +17,8 @@
 2.  TO-DO
 +-------------------------------------------------
 '''
+from crawler.services.bases.base_mongodb_service import BaseMongodbService
+
 __author__ = 'cc'
 
 import json
@@ -29,8 +31,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawler import configs
-from crawler.services.base_web_driver_service import BaseWebDriverService
+from crawler import configs as cfg
+from crawler.services.bases.base_web_driver_service import BaseWebDriverService
 from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
 
@@ -54,7 +56,7 @@ class BaiduYunBiz(object):
 		cookies = driver.get_cookies()
 
 		# Save cookie
-		with open(configs.BAIDU_COOKIE_PATH, 'w+') as file_handler:
+		with open(cfg.BAIDU_COOKIE_PATH, 'w+') as file_handler:
 			json_string = json.dumps(cookies)
 			file_handler.write(json_string)
 
@@ -63,10 +65,10 @@ class BaiduYunBiz(object):
 		result = None
 
 		# Whether cookie file exists
-		if os.path.exists(configs.BAIDU_COOKIE_PATH):
+		if os.path.exists(cfg.BAIDU_COOKIE_PATH):
 			try:
 				# Load cookie
-				with open(configs.BAIDU_COOKIE_PATH) as file_handler:
+				with open(cfg.BAIDU_COOKIE_PATH) as file_handler:
 					# Load cookies from local json file
 					cookies = json.loads(file_handler.readline())
 					# Assign cookies to web driver
@@ -199,8 +201,28 @@ class BaiduYunBiz(object):
 		return result
 
 
-class BaiduYunService(BaseWebDriverService):
+class BaiduYunService(BaseWebDriverService, BaseMongodbService):
 	_domain = 'pan.baidu.com'
+
+	'''
+	Initialization
+	'''
+
+	def __init__(self, alias=cfg.MONGO_DATABASE, db=cfg.MONGO_DATABASE):
+		# Init web browser
+		BaseWebDriverService.__init__(self)
+		# Init mongodb
+		BaseMongodbService.__init__(self, alias=alias, db=db)
+
+	def __enter__(self):
+		return self
+
+	def __exit__(self, *args, **kwargs):
+		# Close web browser
+		BaseWebDriverService.__exit__(self, args, kwargs)
+		# Disconnect
+		BaseMongodbService.__exit__(self, args, kwargs)
+		pass
 
 	def prepare_desired_capabilities(self):
 		capabilities = DesiredCapabilities.FIREFOX.copy()
@@ -209,8 +231,9 @@ class BaiduYunService(BaseWebDriverService):
 		return capabilities
 
 	@classmethod
-	def query_tasks(cls, filter, sort={}):
-		return DownloadTaskMongoBiz.find(filter=filter, sort=sort)
+	def query_tasks(cls, criteria, sort=('-publishTime', '+inTime')):
+		result = DownloadTaskMongoBiz.find(criteria=criteria, sort=sort)
+		return result
 
 	def save_one(self, download_task, netdisk_folder_name='08_book_newincome'):
 		result = False

@@ -77,3 +77,5 @@ if 'windows' == platform.system().lower():
 else:
 	GECKO_EXECUTABLE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'thirdparty', 'geckodriver')
 print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
+
+SOBOOKS_VALIDATE_CODE = '20190808'

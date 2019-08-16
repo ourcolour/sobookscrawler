@@ -43,7 +43,19 @@ class DetailPageBiz:
 			# Wait until button submit disappear
 			wait.until_not(EC.presence_of_element_located((By.XPATH, '//div[@class="e-secret"]/form/input[@value="提交查看"]')))
 
-		secret = driver.find_element_by_xpath('//div[@class="e-secret"]/strong').text.replace('提取密码：', '')
+		secret_element = None
+		try:
+			secret_element = driver.find_element_by_xpath('//div[@class="e-secret"]/b')
+		except Exception as e:
+			try:
+				secret_element = driver.find_element_by_xpath('//div[@class="e-secret"]/strong')
+			except Exception as e:
+				pass
+
+		if not secret_element:
+			raise ValueError('The e-secret element not found.')
+
+		secret = secret_element.text.replace('提取密码：', '')
 
 		return secret
 
@@ -80,6 +92,8 @@ class DetailPageBiz:
 			elif '浏览' == key:
 				pass
 			elif '评分' == key:
+				pass
+			elif '出版社' == key:
 				pass
 			else:
 				raise RuntimeError('Invalid arguments: {} -> {}'.format(key, value))

@@ -256,7 +256,7 @@ class SobooksCrawlerService(BaseWebDriverService, BaseMongodbService):
 
 		return result
 
-	def _detail_page(self, url, validate_code='2019777'):
+	def _detail_page(self, url, validate_code=cfg.SOBOOKS_VALIDATE_CODE):
 		result = None
 
 		self.driver.get(url)

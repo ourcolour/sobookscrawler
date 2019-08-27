@@ -110,11 +110,6 @@ class JobMongoBiz(BaseMongoBiz[JobModel]):
 		criteria = {'status': status}
 		return cls.count(criteria)
 
-	# @classmethod
-	# def count(cls, criteria=dict()):
-	# 	total_count = CrawlerTaskModel.objects(__raw__=criteria).count()
-	# 	return total_count
-
 	@classmethod
 	def pop(cls, status=S_READY):
 		criteria = {'status': status, 'left_count': {'$gt': 0}}

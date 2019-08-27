@@ -107,7 +107,7 @@ class BaseMongoDA:
 		return result
 
 	@classmethod
-	def find(cls, db, col, criteria={}, sort=None, skip=None, limit=None):
+	def find(cls, db, col, criteria=None, sort=None, skip=None, limit=None):
 		if None is db:
 			raise ValueError('Invalid database value.')
 		if None is col:

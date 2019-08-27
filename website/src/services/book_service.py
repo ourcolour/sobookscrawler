@@ -29,7 +29,7 @@ class BookService(object):
 	def find_by_isbn(self, isbn):
 		return BookModel.objects(__raw__={'isbn13': str(isbn)})
 
-	def find(self, criteria={}, page_no=1, page_size=DEFAULT_PAGE_SIZE):
+	def find(self, criteria=None, page_no=1, page_size=DEFAULT_PAGE_SIZE):
 		if None is criteria:
 			criteria = dict()
 

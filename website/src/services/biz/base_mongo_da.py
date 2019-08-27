@@ -31,7 +31,7 @@ class BaseMongoDA:
 
 	@classmethod
 	def __connect__(cls, host=cfg.MONGO_HOST, port=cfg.MONGO_PORT):
-		if None is host or len(host) < 1:
+		if None is host or not host:
 			host = DEFAULT_MONGO_HOST
 		if None is port or port < 1 or port > 65535:
 			port = DEFAULT_MONGO_PORT
@@ -107,11 +107,13 @@ class BaseMongoDA:
 		return result
 
 	@classmethod
-	def find(cls, db, col, filter={}, sort=None, skip=None, limit=None):
+	def find(cls, db, col, criteria={}, sort=None, skip=None, limit=None):
 		if None is db:
 			raise ValueError('Invalid database value.')
 		if None is col:
 			raise ValueError('Invalid collection value.')
+		if None is criteria:
+			criteria = dict()
 
 		result = []
 
@@ -121,7 +123,7 @@ class BaseMongoDA:
 			# 	cursor = col.find(filter)
 			# else:
 			# 	cursor = col.find()
-			with col.find(filter) as cursor:
+			with col.find(criteria) as cursor:
 				if None is not sort:
 					if isinstance(sort, tuple):
 						sort = [sort]

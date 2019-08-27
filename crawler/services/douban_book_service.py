@@ -58,8 +58,6 @@ class DoubanBookService(BaseWebDriverService):
 		return capabilities
 
 	def find_duplicate_by(self, field=('isbn13')):
-		result = []
-
 		duplicate_fields_dict = {}
 		book_list = BookMongoBiz.find(criteria=None, sort=field)
 		for book in book_list:
@@ -90,7 +88,7 @@ class DoubanBookService(BaseWebDriverService):
 
 		try:
 			# Arguments
-			if None is isbn13 or len(isbn13.strip()) < 1:
+			if None is isbn13 or not isbn13.strip():
 				raise ValueError('Invalid argument `isbn13`.')
 			isbn13 = isbn13.strip()
 
@@ -151,7 +149,7 @@ class DoubanBookService(BaseWebDriverService):
 		tbl.align['title'] = 'l'
 
 		# Prepare table row
-		for book, status_dict, ex in result:
+		for book, status_dict, unused_ex in result:
 			# Prepare content
 			column_values = list()
 			for column in tbl.field_names:
@@ -163,9 +161,9 @@ class DoubanBookService(BaseWebDriverService):
 					display = book.title
 				elif 'authors' == column:
 					display = ''
-					if None is not book.authors and len(book.authors) > 0:
+					if None is not book.authors and book.authors:
 						display = book.authors[0]
-						if len(book.authors) > 1:
+						if book.authors:
 							display += ' ...'
 				elif 'db-action' == column:
 					display = status_dict['db-action']

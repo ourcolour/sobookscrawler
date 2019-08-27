@@ -180,8 +180,8 @@ class DoubanBookBiz(object):
 		star = 0
 
 		# If exists rating
-		if len(driver.find_elements_by_link_text('评价人数不足')) < 1 \
-				and len(driver.find_elements_by_xpath('//div[@class="rating_sum"]/span[contains(text(),"目前无人评价")]')) < 1:
+		if not driver.find_elements_by_link_text('评价人数不足') \
+				and not driver.find_elements_by_xpath('//div[@class="rating_sum"]/span[contains(text(),"目前无人评价")]'):
 			rating_max = float(driver.find_element_by_xpath('//span[@property="v:best"]').get_attribute('content'))
 			rating_average = float(driver.find_element_by_xpath('//strong[@property="v:average"]').text)
 			num_raters = int(driver.find_element_by_xpath('//span[@property="v:votes"]').text)
@@ -189,8 +189,7 @@ class DoubanBookBiz(object):
 			# Average star
 
 			for i in range(50, -1, -5):
-				found = len(driver.find_elements_by_class_name('bigstar{}'.format(i))) > 0
-				if found:
+				if driver.find_elements_by_class_name('bigstar{}'.format(i)):
 					star = i
 					break
 			star = star / 10.0
@@ -288,7 +287,7 @@ class DoubanBookBiz(object):
 					v_arr = value.split('/')
 					for v in v_arr:
 						v = v.strip()
-						if None is v or len(v) < 1:
+						if None is v or not v:
 							continue
 						ref_book.authors.append(v)
 				elif '出版社' == key:

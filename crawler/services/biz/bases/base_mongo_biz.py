@@ -39,10 +39,10 @@ class BaseMongoBiz(Generic[T]):
 
 		if hasattr(cls, '__orig_bases__'):
 			arr = getattr(cls, '__orig_bases__')
-			if arr and len(arr) > 0:
+			if arr:
 				generic_type = arr[0]
 				arr = getattr(generic_type, '__args__')
-				if arr and len(arr) > 0:
+				if arr:
 					generic_type = arr[0]
 					if isinstance(generic_type, TopLevelDocumentMetaclass):
 						result = generic_type
@@ -99,12 +99,18 @@ class BaseMongoBiz(Generic[T]):
 		return new_model
 
 	@classmethod
-	def count(cls, criteria=dict()) -> int:
+	def count(cls, criteria=None) -> int:
+		if None is criteria:
+			criteria = dict()
+
 		total_count = cls._get_generic_member_type().objects(__raw__=criteria).count()
 		return total_count
 
 	@classmethod
-	def find_one(cls, criteria={}, sort=None):
+	def find_one(cls, criteria=None, sort=None):
+		if None is criteria:
+			criteria = dict()
+
 		query = cls._get_generic_member_type().objects(__raw__=criteria)
 		if sort:
 			query = query.order_by(sort)
@@ -113,7 +119,10 @@ class BaseMongoBiz(Generic[T]):
 		return model
 
 	@classmethod
-	def find(cls, criteria={}, sort=None, skip=None, limit=None):
+	def find(cls, criteria=None, sort=None, skip=None, limit=None):
+		if None is criteria:
+			criteria = dict()
+
 		query = cls._get_generic_member_type().objects(__raw__=criteria)
 		if sort:
 			query = query.order_by(*sort)

@@ -115,9 +115,9 @@ class BaseWebDriverService(object):
 		)
 
 	def build_url(self, domain=None, protocol=DEFAULT_PROTOCOL, path=None, port=None):
-		if None is not protocol and len(protocol) > 0:
+		if None is not protocol and protocol:
 			self._protocol = protocol
-		if None is not domain and len(domain) > 0:
+		if None is not domain and domain:
 			self._domain = domain
 		if None is not port and (port > 0 and port != 80):
 			self._port = port
@@ -130,7 +130,7 @@ class BaseWebDriverService(object):
 			result = '{}:{}'.format(result, self._port)
 
 		# Path
-		if None is not path and len(path) > 0:
+		if None is not path and path:
 			if '/' != path[0]:
 				path = '/' + path
 			result = '{}{}'.format(result, path)

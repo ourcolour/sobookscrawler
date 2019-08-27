@@ -57,7 +57,7 @@ class CapubCipService(BaseWebDriverService):
 
 		try:
 			# Arguments
-			if None is isbn13 or len(isbn13.strip()) < 1:
+			if None is isbn13 or not isbn13.strip():
 				raise ValueError('Invalid argument `isbn13`.')
 			isbn13 = isbn13.strip()
 

@@ -41,7 +41,7 @@ def _load_controller(app):
 	# List all files in `controllers` folder
 	root_name = 'controllers'
 	root_path = os.path.join(os.path.dirname(sys.argv[0]), root_name)
-	for (top, dir_list, file_list) in os.walk(root_path):
+	for (top, unused_dir_list, file_list) in os.walk(root_path):
 		for file in file_list:
 			if file in ignore_file_list:
 				continue
@@ -104,7 +104,7 @@ def run():
 	api.add_resource(BookApiController, '/v1/book/<string:isbn>')
 
 	# Go running
-	app.run(debug=True, host='0.0.0.0', port=5000)
+	app.run(debug=True, host='127.0.0.1', port=5000)
 
 
 if __name__ == '__main__':

@@ -27,13 +27,13 @@ class DownloadTaskMongoBiz(BaseMongoBiz[DownloadTaskModel]):
 
 	@classmethod
 	def find_by_url(cls, baiduUrl=None, ctUrl=None) -> DownloadTaskModel:
-		if (None is baiduUrl or len(baiduUrl) < 1) and (None is baiduUrl or len(baiduUrl) < 1):
+		if (None is baiduUrl or not baiduUrl) and (None is baiduUrl or not baiduUrl):
 			raise ValueError('Invalid parameters `baiduUrl`, `ctUrl`.')
 
 		sub_criteria = []
-		if None is not baiduUrl and len(baiduUrl) > 0:
+		if None is not baiduUrl and baiduUrl:
 			sub_criteria.append({'baiduUrl': baiduUrl})
-		if None is not ctUrl and len(ctUrl) > 0:
+		if None is not ctUrl and ctUrl:
 			sub_criteria.append({'ctUrl': ctUrl})
 		criteria = {'$or': sub_criteria}
 

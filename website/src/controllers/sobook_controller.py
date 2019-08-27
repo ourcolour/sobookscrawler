@@ -41,7 +41,7 @@ def sobooks_list_ajax(page_size=10):
 
 	# Query criteria
 	filter = {}
-	if None is not keyword and len(keyword) > 0:
+	if None is not keyword and keyword:
 		filter = {'$or': [
 			{'isbn': {'$regex': r'.*' + keyword + '.*'}},
 			{'author': {'$regex': r'.*' + keyword + '.*'}},

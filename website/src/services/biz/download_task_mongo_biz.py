@@ -33,10 +33,10 @@ class DownloadTaskMongoBiz(BaseMongoBiz):
 		baiduUrl = entity.baiduUrl
 		ctUrl = entity.ctUrl
 
-		sub_criteria = []
-		if None is not baiduUrl and len(baiduUrl) > 0:
+		sub_criteria = list()
+		if None is not baiduUrl and baiduUrl:
 			sub_criteria.append({'baiduUrl': baiduUrl})
-		if None is not ctUrl and len(ctUrl) > 0:
+		if None is not ctUrl and ctUrl:
 			sub_criteria.append({'ctUrl': ctUrl})
 
 		criteria = {'$or': sub_criteria}
@@ -48,12 +48,15 @@ class DownloadTaskMongoBiz(BaseMongoBiz):
 		return doc
 
 	@classmethod
-	def find(cls, filter={}, sort=None, skip=None, limit=None):
+	def find(cls, criteria=None, sort=None, skip=None, limit=None):
+		if None is criteria:
+			criteria = dict()
+
 		result = []
 
-		doc_list = BaseMongoDA.find(cls._db, cls._col, filter, sort, skip, limit)
+		doc_list = BaseMongoDA.find(cls._db, cls._col, criteria, sort, skip, limit)
 
-		if None is not doc_list and len(doc_list) > 0:
+		if None is not doc_list and doc_list:
 			for doc in doc_list:
 				obj = DownloadTask.dict_to_obj(doc)
 				if None is not obj:

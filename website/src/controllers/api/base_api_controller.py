@@ -79,9 +79,9 @@ class RESTfulResponse(object):
 			raise ValueError('Invalid argument.')
 
 		# Import module and target class
-		if None is module_name or len(module_name) < 1:
+		if None is module_name or not module_name:
 			module_name = cls.__module__
-		if None is class_name or len(class_name) < 1:
+		if None is class_name or not class_name:
 			class_name = cls.__name__
 		target_module = importlib.import_module(module_name)
 		target_class = getattr(target_module, class_name)

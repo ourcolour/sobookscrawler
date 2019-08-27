@@ -86,7 +86,7 @@ class BookModel(BaseModel):
 	def build_tags(cls, name, title=None, count=0):
 		return dict({
 			'name': name,
-			'title': title if None is not title and len(title) > 0 else name,
+			'title': title if None is not title and title else name,
 			'count': count,
 		})
 
@@ -423,7 +423,7 @@ class BookModel(BaseModel):
 # 	def build_tags(cls, name, title=None, count=0):
 # 		return dict({
 # 			'name': name,
-# 			'title': title if None is not title and len(title) > 0 else name,
+# 			'title': title if None is not title and title else name,
 # 			'count': count,
 # 		})
 #

@@ -134,7 +134,7 @@ class BaiduYunBiz(object):
 		secret = download_task.secret
 
 		# Fetch
-		if None is res_url or len(res_url) < 1:
+		if None is res_url or not res_url:
 			return result
 
 		try:
@@ -145,7 +145,7 @@ class BaiduYunBiz(object):
 			Check the resource existing status
 			'''
 			div_share_nofound_des_list = driver.find_elements_by_xpath('//div[@id="share_nofound_des"]')
-			if None is not div_share_nofound_des_list and len(div_share_nofound_des_list) > 0:
+			if None is not div_share_nofound_des_list and div_share_nofound_des_list:
 				raise RuntimeError('Resource not exists')
 			'''
 			Enter secret form
@@ -188,8 +188,8 @@ class BaiduYunBiz(object):
 			# Find buttons
 			div_dialog_footer = driver.find_element_by_class_name('dialog-footer')
 			btn_confirm = div_dialog_footer.find_element_by_xpath('//a[@title="确定"]')
-			btn_cancel = div_dialog_footer.find_element_by_xpath('//a[@title="取消"]')
-			btn_new_folder = div_dialog_footer.find_element_by_xpath('//a[@title="新建文件夹"]')
+			unused_btn_cancel = div_dialog_footer.find_element_by_xpath('//a[@title="取消"]')
+			unused_btn_new_folder = div_dialog_footer.find_element_by_xpath('//a[@title="新建文件夹"]')
 
 			# Click button [确定]
 			btn_confirm.click()
@@ -248,7 +248,7 @@ class BaiduYunService(BaseWebDriverService, BaseMongodbService):
 		return result
 
 	def save_many(self, download_task_list=None, netdisk_folder_name=None, skip=0):
-		if None is download_task_list or len(download_task_list) < 1:
+		if None is download_task_list or not download_task_list:
 			raise ValueError('No download task to run')
 
 		# Do login

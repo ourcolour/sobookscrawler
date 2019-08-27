@@ -50,7 +50,7 @@ class JobService(BaseMongodbService):
 			book_info = svs.get_book_id_by_isbn13(isbn13=isbn13)
 
 			# Fetch book infos
-			if None is not book_info and len(book_info.get('book_id_list')) > 0:
+			if None is not book_info and book_info.get('book_id_list'):
 				book_id_list = book_info.get('book_id_list')
 				referer = book_info.get('referer')
 				print('Found {} link(s).'.format(len(book_id_list)))
@@ -70,18 +70,14 @@ class JobService(BaseMongodbService):
 					print('< R:{} / L:{} > [book-id: {}] New task was pushed into queue.'.format(
 						job.retried_count,
 						job.left_count,
-						job.job_info['book_id'],
+						job.job_info['book_id']
 					))
 					pass
 
 	def run_task(self, limit=5):
-		# Path settings
-		static_folder = 'resources'
-		static_url_path = ''
-
 		# Services
 		with DoubanBookService() as dbs:
-			for i in range(0, limit):
+			for _ in range(0, limit):
 				job = JobMongoBiz.pop()
 				if None is job:
 					print('No task in queue.')
@@ -91,7 +87,7 @@ class JobService(BaseMongodbService):
 					job.retried_count,
 					job.left_count,
 					job.job_info['book_id'],
-					job.status,
+					job.status
 				))
 
 				# Task - Begin ---
@@ -108,7 +104,7 @@ class JobService(BaseMongodbService):
 						job.job_info['book_id'],
 						book.isbn13,
 						book.title,
-						book.authors[0] if 0 < len(book.authors) else ''
+						book.authors[0] if book.authors else ''
 					))
 					pass
 				except Exception as ex:
@@ -139,7 +135,7 @@ class JobService(BaseMongodbService):
 				try:
 					line = fp.readline()
 
-					if None is line or len(line.strip()) < 1:
+					if None is line or not line.strip():
 						raise EOFError()
 
 					line = line.strip()
@@ -166,7 +162,7 @@ class JobService(BaseMongodbService):
 			book_status_list = svs.get_book_list(book_id_list)
 			print('Total {} book(s).'.format(len(book_id_list)))
 
-			for book, status in book_status_list:
+			for book, unused_status in book_status_list:
 				if None is book:
 					continue
 

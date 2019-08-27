@@ -28,8 +28,6 @@ import jieba
 class EBookService(object):
 
 	def read(self, file_path):
-		doc = {}
-
 		book = ebooklib.epub.read_epub(file_path)
 
 		h = html2text.HTML2Text()
@@ -57,7 +55,7 @@ NOT_ALLOW = ['r', 'm', 'q', 'd', 'p', 'c', 'u', 'e', 'y', 'o', 'h', 'k', 'w', 'x
 def is_valid_word(word, flag=None):
 	result = True
 
-	if None is word or len(word) < 1:
+	if None is word or not word:
 		result = False
 	elif None is not flag:
 		cap = flag.lower()

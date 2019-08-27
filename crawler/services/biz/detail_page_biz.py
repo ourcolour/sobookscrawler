@@ -19,6 +19,7 @@
 '''
 __author__ = 'cc'
 
+import os
 from datetime import datetime
 
 from selenium.webdriver.common.by import By
@@ -53,6 +54,10 @@ class DetailPageBiz:
 				pass
 
 		if not secret_element:
+			dir_path = '/Users/cc/Desktop'
+			file_name = datetime.strftime('%Y%m%d')
+			snapshot = os.path.join(dir_path, file_name)
+			driver.get_screenshot_as_file(snapshot)
 			raise ValueError('The e-secret element not found.')
 
 		secret = secret_element.text.replace('提取密码：', '')

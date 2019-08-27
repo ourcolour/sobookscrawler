@@ -71,7 +71,6 @@ class JobService(BaseMongodbService):
 						job.retried_count,
 						job.left_count,
 						job.job_info['book_id'],
-						job.status,
 					))
 					pass
 
@@ -127,7 +126,10 @@ class JobService(BaseMongodbService):
 				# Task - End -----
 				pass
 
-	def get_book_list(self, book_id_list=list()):
+	def get_book_list(self, book_id_list=None):
+		if None is book_id_list:
+			book_id_list = list()
+
 		# import random
 		# random.shuffle(book_id_list)
 

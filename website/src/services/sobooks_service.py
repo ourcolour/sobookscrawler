@@ -29,7 +29,10 @@ class SobooksService(object):
 	def find_by_isbn(self, isbn):
 		return SobooksModel.objects(__raw__={'isbn': isbn})
 
-	def find(self, filter={}, page_no=1, page_size=DEFAULT_PAGE_SIZE):
-		return SobooksModel.objects(__raw__=filter) \
+	def find(self, criteria=None, page_no=1, page_size=DEFAULT_PAGE_SIZE):
+		if None is criteria:
+			criteria = dict()
+
+		return SobooksModel.objects(__raw__=criteria) \
 			.order_by('+inTime') \
 			.paginate(page=page_no, per_page=page_size)

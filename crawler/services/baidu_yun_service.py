@@ -247,7 +247,7 @@ class BaiduYunService(BaseWebDriverService, BaseMongodbService):
 
 		return result
 
-	def save_many(self, download_task_list=[], netdisk_folder_name=None, skip=0):
+	def save_many(self, download_task_list=None, netdisk_folder_name=None, skip=0):
 		if None is download_task_list or len(download_task_list) < 1:
 			raise ValueError('No download task to run')
 

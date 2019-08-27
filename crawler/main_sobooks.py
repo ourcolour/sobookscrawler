@@ -38,7 +38,7 @@ def fetch_from_sobooks_site(since_date):
 		since_date = datetime.strptime(since_date, '%Y%m%d').date()
 
 	# Fetch newer
-	# SobooksCrawlerExecutor.new_range_tasks_by_publish_time(since_date)
+	SobooksCrawlerExecutor.new_range_tasks_by_publish_time(since_date)
 
 	# def t():
 	# Download newer
@@ -74,5 +74,4 @@ def command_dispatcher(action, since_date):
 
 
 if __name__ == '__main__':
-	# return
 	command_dispatcher()

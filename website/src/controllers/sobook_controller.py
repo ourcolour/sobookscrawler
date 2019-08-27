@@ -49,7 +49,7 @@ def sobooks_list_ajax(page_size=10):
 		]}
 	# {'$text': {'$search': keyword}}
 
-	book_list = _sobooks_service.find(filter=filter, page_no=page_no, page_size=page_size)
+	book_list = _sobooks_service.find(criteria=filter, page_no=page_no, page_size=page_size)
 
 	return render_template('/sobooks/list_item.html', book_list=book_list)
 

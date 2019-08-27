@@ -107,11 +107,13 @@ class BaseMongoDA:
 		return result
 
 	@classmethod
-	def find(cls, db, col, filter={}, sort=None, skip=None, limit=None):
+	def find(cls, db, col, criteria=None, sort=None, skip=None, limit=None):
 		if None is db:
 			raise ValueError('Invalid database value.')
 		if None is col:
 			raise ValueError('Invalid collection value.')
+		if None is criteria:
+			criteria = dict()
 
 		result = []
 
@@ -121,7 +123,7 @@ class BaseMongoDA:
 			# 	cursor = col.find(filter)
 			# else:
 			# 	cursor = col.find()
-			with col.find(filter) as cursor:
+			with col.find(criteria) as cursor:
 				if None is not sort:
 					if isinstance(sort, tuple):
 						sort = [sort]

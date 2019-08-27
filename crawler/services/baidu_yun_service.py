@@ -208,7 +208,7 @@ class BaiduYunService(BaseWebDriverService, BaseMongodbService):
 	Initialization
 	'''
 
-	def __init__(self, alias=cfg.MONGO_DATABASE, db=cfg.MONGO_DATABASE):
+	def __init__(self, alias=cfg.MONGO_CONNECTION_NAME, db=cfg.MONGO_DATABASE):
 		# Init web browser
 		BaseWebDriverService.__init__(self)
 		# Init mongodb

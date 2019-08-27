@@ -93,7 +93,7 @@ class JobService(BaseMongodbService):
 				# Task - Begin ---
 				try:
 					# Do process
-					book, status, ex = dbs.get_book_list([job.job_info['book_id']])[0]
+					book, unused_status, ex = dbs.get_book_list([job.job_info['book_id']])[0]
 					if None is not ex:
 						raise ex
 					# Got success, update status

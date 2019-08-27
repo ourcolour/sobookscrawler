@@ -29,9 +29,9 @@ class BaseMongodbService(object):
 	Initialization
 	'''
 
-	def __init__(self, alias=cfg.MONGO_DATABASE, db=cfg.MONGO_DATABASE):
+	def __init__(self, alias=me.DEFAULT_CONNECTION_NAME, db=cfg.MONGO_DATABASE):
 		# Arguments
-		self._alias = me.DEFAULT_CONNECTION_NAME  # alias
+		self._alias = alias  # alias
 		self._db = db
 
 		# Open database connection

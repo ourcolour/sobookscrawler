@@ -33,7 +33,7 @@ class DetailPageBiz:
 		input_boxes = driver.find_elements_by_xpath('//div[@class="e-secret"]/form/input[@name="e_secret_key"]')
 
 		# Check whether need to fetch the secret code via post action
-		if len(input_boxes) > 0:
+		if input_boxes:
 			# Fill the input-box with validate code
 			input_boxes[0].send_keys(validate_code)
 

@@ -57,7 +57,7 @@ def RANDOM_PROXY(return_tuple=True):
 MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
 MONGO_PORT = 27018
 
-MONGO_DATABASE = 'DoubanBookApi'
+MONGO_DATABASE = 'default'  # 'DoubanBookApi'
 # MONGO_COLLECTION = 'cloud_storage'
 # MONGO_COLLECTION = 'download_task'
 

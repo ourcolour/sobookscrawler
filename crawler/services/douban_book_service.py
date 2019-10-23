@@ -236,7 +236,7 @@ class DoubanBookService(BaseWebDriverService):
 				# Check existance by isbn13
 				old_book = BookMongoBiz.find_one(criteria={'isbn13': result.isbn13})
 				if None is not old_book:
-					result = BookMongoBiz.update_by_entity(old_book, result)
+					result = BookMongoBiz.update_by_model(old_book, result)
 					status_dict['db-action'] = 'U'
 				else:
 					result = BookMongoBiz.add(result)

@@ -33,6 +33,91 @@ from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 class SobooksCrawlerExecutor(BaseWebDriverService):
 
 	@classmethod
+	def find_duplicate_by(cls, field='referer'):
+		with SobooksCrawlerService() as svs:
+			duplicate_fields_dict = {}
+
+			result_list = DownloadTaskMongoBiz.find(criteria=None, sort=field)
+
+			for item in result_list:
+				field_value = getattr(item, field)
+
+				if field_value in duplicate_fields_dict:
+					duplicate_fields_dict[field_value] += 1
+				else:
+					duplicate_fields_dict[field_value] = 1
+
+				pass
+
+			for k, v in duplicate_fields_dict.items():
+				if v < 2:
+					continue
+				print('{} -> {}'.format(k, v))
+
+		return
+
+	@classmethod
+	def new_range_tasks_by_detail_page_urls(cls, detail_page_urls=None):
+		# Arguments
+		if not detail_page_urls:
+			raise ValueError('Invalid `detail_page_urls` value.')
+
+		# Result
+		thread_id = 1
+		added = 0
+		updated = 0
+		error = 0
+
+		# Calculate progress
+		current = 1
+		total = 1  # len(detail_page_urls)
+		bits = 3  # str(len(str(total)))
+
+		# Start fetching from page No.1,
+		# stop until book `publishTime` great than or equal `to_date`
+		with SobooksCrawlerService() as svs:
+			# Fetch every detail pages
+			for url in detail_page_urls:
+				time.sleep(0.2)
+
+				download_task, code = svs._detail_page(url)
+
+				if 'e' == code:
+					fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]  {}'
+					print(fmt.format(
+						thread_id,
+						current,
+						total,
+						code.upper(),
+						'Record skipped, because of no download url found.',
+					))
+				else:
+					fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
+					print(fmt.format(
+						thread_id,
+						current,
+						total,
+						code.upper(),
+						download_task.title,
+						download_task.authors[0],
+					))
+
+				current += 1
+				total += 1
+
+				if 'a' == code:
+					added += 1
+				elif 'u' == code:
+					updated += 1
+				elif 'e' == code:
+					error += 1
+
+		# Print result
+		print('[ OK] Added: {}, Update: {}, Error: {}'.format(added, updated, error))
+
+		return added, updated, error
+
+	@classmethod
 	def new_range_tasks_by_publish_time(cls, to_date):
 		# Arguments
 		if None is to_date:
@@ -272,7 +357,7 @@ class SobooksCrawlerService(BaseWebDriverService, BaseMongodbService):
 		# Check download url
 		if self._has_download_url(download_task):
 			# Check duplicate records via fields: baiduUrl or ctUrl
-			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task.baiduUrl, download_task.ctUrl)
+			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task.baiduUrl, download_task.ctUrl, download_task.referer)
 			if None is old_download_task:
 				# Not exists do insert
 				result = DownloadTaskMongoBiz.add(download_task)
@@ -280,7 +365,7 @@ class SobooksCrawlerService(BaseWebDriverService, BaseMongodbService):
 				return (result, 'a')
 			else:
 				# Exists do replace(update)
-				result = DownloadTaskMongoBiz.update_by_entity(old_download_task, download_task)
+				result = DownloadTaskMongoBiz.update_by_model(old_download_task, download_task)
 
 				return (result, 'u')
 		else:

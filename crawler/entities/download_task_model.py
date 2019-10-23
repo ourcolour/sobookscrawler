@@ -21,7 +21,7 @@ __authors__ = 'cc'
 
 from mongoengine import *
 
-from entities.base_model import BaseModel
+from website.entities.base_model import BaseModel
 
 
 class DownloadTaskModel(BaseModel):
@@ -31,7 +31,9 @@ class DownloadTaskModel(BaseModel):
 
 	referer = StringField(regex=r'^https?://.+$', )
 	title = StringField()
+	author = StringField()
 	authors = ListField(StringField())
+
 	baiduUrl = StringField()
 	ctUrl = StringField()
 	publishTime = DateTimeField()

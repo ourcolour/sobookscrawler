@@ -17,8 +17,6 @@
 2.  TO-DO
 +-------------------------------------------------
 '''
-from utils import path_util
-
 __author__ = 'cc'
 
 import importlib
@@ -29,7 +27,9 @@ import sys
 from flask import Flask
 from flask_mongoengine import MongoEngine
 from flask_restful import Resource, Api
-from controllers.api.book_api_controller import BookApiController
+
+from website.controllers.api.book_api_controller import BookApiController
+from website.utils import path_util
 
 
 def _load_controller(app):
@@ -73,7 +73,7 @@ class HomeController(Resource):
 # Status files
 # url_for('resources', )
 
-MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 'database.cfg')
+MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 'database.cfg.py')
 
 # Define
 db = None

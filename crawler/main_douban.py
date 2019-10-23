@@ -24,10 +24,10 @@ import os
 import click
 
 from crawler.services.job_service import JobService
-from utils import path_util
+from website.utils import path_util
 
 # Status files
-MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 'database.cfg')
+MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 'database.cfg.py')
 
 
 @click.command()

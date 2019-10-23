@@ -19,9 +19,8 @@
 '''
 __author__ = 'cc'
 
-from controllers.api.base_api_controller import BaseApiController, RESTfulResponse
-
-from services.book_service import BookService
+from website.controllers.api.base_api_controller import BaseApiController, RESTfulResponse
+from website.services.book_service import BookService
 
 _book_service = BookService()
 
@@ -30,6 +29,7 @@ class BookApiController(BaseApiController):
 
 	def get(self, isbn):
 		data = _book_service.find_by_isbn(isbn)
+		# data = _book_service.find(criteria={'$regex': r'^9787\d+$'})
 
 		response = RESTfulResponse.build_info(data=data)
 

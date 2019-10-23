@@ -19,20 +19,20 @@
 '''
 __author__ = 'cc'
 
-from entities.book_model import BookModel
+from website.entities.sobooks_model import SobooksModel
 
 DEFAULT_PAGE_SIZE = 10
 
 
-class BookService(object):
+class SobooksService(object):
 
 	def find_by_isbn(self, isbn):
-		return BookModel.objects(__raw__={'isbn13': str(isbn)})
+		return SobooksModel.objects(__raw__={'isbn': isbn})
 
 	def find(self, criteria=None, page_no=1, page_size=DEFAULT_PAGE_SIZE):
 		if None is criteria:
 			criteria = dict()
 
-		return BookModel.objects(__raw__=criteria) \
+		return SobooksModel.objects(__raw__=criteria) \
 			.order_by('+inTime') \
 			.paginate(page=page_no, per_page=page_size)

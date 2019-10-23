@@ -150,14 +150,18 @@ class BaiduYunBiz(object):
 			'''
 			Enter secret form
 			'''
-			# Wait until user log-in manual
-			wait.until(EC.url_contains('share/init'))
+			# If resource download form appears, skip the enter secret progress
+			if driver.current_url.find('/s/') < 0:
+				# Wait until secret form appears
+				wait.until(EC.url_contains('share/init'))
 
-			# Fill the form with secret
-			driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/input[@type="text"]').send_keys(secret)
+			# Check whether need to fill secret
+			if len(driver.find_elements_by_xpath('//a[@title="保存到网盘"]')) < 1:
+				# Fill the form with secret
+				driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/input[@type="text"]').send_keys(secret)
 
-			# Submit the form by clicking
-			driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/div/a[@title="提取文件"]').click()
+				# Submit the form by clicking
+				driver.find_element_by_xpath('//dd[@class="clearfix input-area"]/div/a[@title="提取文件"]').click()
 
 			'''
 			Save file treeview form

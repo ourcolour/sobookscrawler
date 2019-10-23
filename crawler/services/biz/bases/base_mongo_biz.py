@@ -71,8 +71,21 @@ class BaseMongoBiz(Generic[T]):
 
 		return model
 
+	# @classmethod
+	# def update(cls, object_id, new_model) -> T:
+	# 	cls.check_args(new_model)
+	#
+	# 	# Find
+	# 	if isinstance(object_id, str):
+	# 		object_id = ObjectId(object_id)
+	# 	old_model = cls._get_generic_member_type().objects(__raw__={'_id': object_id}).update(unset__author)
+	#
+	# 	return cls.update_by_model(old_model, new_model)
+
+
+
 	@classmethod
-	def update(cls, object_id, new_model) -> T:
+	def update_by_objectid(cls, object_id, new_model) -> T:
 		cls.check_args(new_model)
 
 		# Find
@@ -80,23 +93,41 @@ class BaseMongoBiz(Generic[T]):
 			object_id = ObjectId(object_id)
 		old_model = cls._get_generic_member_type().objects(__raw__={'_id': object_id}).first()
 
-		return cls.update_by_entity(old_model, new_model)
+		return cls.update_by_model(old_model, new_model)
 
 	@classmethod
-	def update_by_entity(cls, old_model, new_model) -> T:
+	def update_by_model(cls, old_model, new_model) -> T:
 		cls.check_args(old_model)
 		cls.check_args(new_model)
 
 		# Set `id` field with old entity's id
-		new_model.id = old_model.id
+		# new_model.id = old_model.id
 		# Set `inTime` field with old entity's time
-		new_model.inTime = old_model.inTime
+		# new_model.inTime = old_model.inTime
 		# Set `editTime` field with current time
-		new_model.editTime = datetime.now().utcnow()
+		# new_model.editTime = datetime.now().utcnow()
 		# Do update
-		new_model = new_model.save()
+		# new_model = new_model.save()
 
-		return new_model
+		# Convert properties of new_model into dict type
+		new_model_properties_dict = new_model.to_mongo().to_dict()
+
+		# Update old_model's properties with new values
+		for (k, v) in new_model_properties_dict.items():
+			# Ignore '_id' field
+			if '_id' == k:
+				continue
+			# Assign value
+			old_model[k] = v
+			# print('KV: {} = {}'.format(k, v))
+			pass
+
+		# Set `editTime` field with current time
+		old_model.editTime = datetime.now().utcnow()
+		# Do update
+		old_model = old_model.save()
+
+		return old_model
 
 	@classmethod
 	def count(cls, criteria=None) -> int:
@@ -131,3 +162,25 @@ class BaseMongoBiz(Generic[T]):
 		if limit:
 			query = query.limit(limit)
 		return query
+
+	@classmethod
+	def delete(cls, criteria=None) -> int:
+		if None is criteria:
+			criteria = dict()
+
+		query = cls._get_generic_member_type().objects(__raw__=criteria)
+
+		affected_rows = query.delete()
+		# affected_rows = 0#query.delete()
+
+		return affected_rows
+
+	@classmethod
+	def delete_by_entity(cls, model) -> int:
+		if not model:
+			return 0
+
+		criteria = {'_id': model._id}
+		affected_rows = cls.delete(criteria=criteria)
+
+		return affected_rows

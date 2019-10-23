@@ -26,15 +26,19 @@ from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
 class DownloadTaskMongoBiz(BaseMongoBiz[DownloadTaskModel]):
 
 	@classmethod
-	def find_by_url(cls, baiduUrl=None, ctUrl=None) -> DownloadTaskModel:
-		if (None is baiduUrl or not baiduUrl) and (None is baiduUrl or not baiduUrl):
-			raise ValueError('Invalid parameters `baiduUrl`, `ctUrl`.')
+	def find_by_url(cls, baiduUrl=None, ctUrl=None, referer=None) -> DownloadTaskModel:
+		if (None is baiduUrl or not baiduUrl) \
+				and (None is ctUrl or not ctUrl) \
+				and (None is referer or not referer):
+			raise ValueError('Invalid parameters `baiduUrl`, `ctUrl`, `referer`.')
 
 		sub_criteria = []
 		if None is not baiduUrl and baiduUrl:
 			sub_criteria.append({'baiduUrl': baiduUrl})
 		if None is not ctUrl and ctUrl:
 			sub_criteria.append({'ctUrl': ctUrl})
+		if None is not referer and referer:
+			sub_criteria.append({'referer': referer})
 		criteria = {'$or': sub_criteria}
 
 		doc = DownloadTaskModel.objects(__raw__=criteria).first()

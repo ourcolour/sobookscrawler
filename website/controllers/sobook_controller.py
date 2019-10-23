@@ -22,7 +22,7 @@ __author__ = 'cc'
 from flask import render_template
 from flask import request
 
-from services.sobooks_service import SobooksService
+from website.services.sobooks_service import SobooksService
 
 _sobooks_service = SobooksService()
 

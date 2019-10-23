@@ -21,7 +21,7 @@ __author__ = 'cc'
 
 from mongoengine import *
 
-from entities.base_model import BaseModel
+from website.entities.base_model import BaseModel
 
 
 class SobooksModel(BaseModel):

@@ -55,10 +55,11 @@ class DetailPageBiz:
 
 		if not secret_element:
 			dir_path = '/Users/cc/Desktop'
-			file_name = datetime.strftime('%Y%m%d')
+			file_name = datetime.now().strftime('%Y%m%d_%H:%M:%S.%f')
 			snapshot = os.path.join(dir_path, file_name)
 			driver.get_screenshot_as_file(snapshot)
-			raise ValueError('The e-secret element not found.')
+
+			raise ValueError('The e-secret element not found when parsing page url: {}'.format(driver.current_url))
 
 		secret = secret_element.text.replace('提取密码：', '')
 

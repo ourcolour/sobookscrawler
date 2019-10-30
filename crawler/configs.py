@@ -19,12 +19,16 @@
 '''
 __author__ = 'cc'
 
+import json
 import os.path
 import platform
 import random
 import sys
+from datetime import datetime
 
 import mongoengine as me
+
+from crawler.utils import path_util
 
 rnd = random.Random()
 
@@ -70,7 +74,9 @@ TASK_WAIT_TIMEOUT = 3 * 1000
 
 MAX_THREAD_COUNT = 1
 
-BAIDU_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), '..', 'bin', 'baidu-cookie.json')
+APP_CONFIG_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'app-config.json')
+
+BAIDU_COOKIE_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'baidu-cookie.json')
 # '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
 # COOKIE_PATH = '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
 DOUBAN_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), '..', 'bin', 'douban-cookie.json')
@@ -82,3 +88,42 @@ else:
 print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
 
 SOBOOKS_VALIDATE_CODE = '20190808'
+
+
+# ----------
+# DO NOT MODIFY THE INFOMATIONS BELOW
+# ----------
+def save_app_config(app_config_dict):
+	# Arguments
+	if not app_config_dict:
+		raise ValueError('Invalid argument(s) `app_config`.')
+
+	with open(APP_CONFIG_PATH, 'w+') as file_handler:
+		json_string = json.dumps(app_config_dict)
+		file_handler.write(json_string)
+
+	pass
+
+
+def load_app_config() -> dict:
+	# Initialize the `app-config.json` if it not exists.
+	if not os.path.exists(APP_CONFIG_PATH):
+		def _init_app_config_():
+			return {
+				'since_date': {
+					'previous_date': None,
+					'current_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
+				}
+			}
+
+		with open(APP_CONFIG_PATH, 'x') as file_handler:
+			json_string = json.dumps(_init_app_config_())
+			file_handler.write(json_string)
+
+	# Load the `app-config.json` file from local disk.
+	app_config = None
+	with open(APP_CONFIG_PATH, 'r+') as file_handler:
+		lines = file_handler.readline()
+		app_config = json.loads(lines)
+
+	return app_config

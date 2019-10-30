@@ -23,7 +23,7 @@ import concurrent.futures
 import time
 from datetime import date, datetime
 
-import crawler.configs as  cfg
+import crawler.configs as cfg
 from crawler.services.bases.base_mongodb_service import BaseMongodbService
 from crawler.services.bases.base_web_driver_service import BaseWebDriverService
 from crawler.services.biz.detail_page_biz import DetailPageBiz

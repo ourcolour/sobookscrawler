@@ -19,19 +19,19 @@
 '''
 __author__ = 'cc'
 
-import json
 import os.path
 import platform
 import random
 import sys
-from datetime import datetime
 
 import mongoengine as me
 
 from crawler.utils import path_util
 
+'''
+Http Proxy
+'''
 rnd = random.Random()
-
 HTTPS_PROXY_LIST = [
 	# '122.193.246.218:9999',
 	# '112.85.164.143:9999',
@@ -59,71 +59,55 @@ def RANDOM_PROXY(return_tuple=True):
 		return result
 
 
+'''
+MongoDB
+'''
 # MONGO_HOST = 'mongodb://127.0.0.1:27018' #'192.168.2.91'
 MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
 MONGO_PORT = 27018
-
 MONGO_CONNECTION_NAME = me.DEFAULT_CONNECTION_NAME
 MONGO_DATABASE = 'DoubanBookApi'
 # MONGO_COLLECTION = 'cloud_storage'
 # MONGO_COLLECTION = 'download_task'
 
-FIREFOX_BINARY_PATH = '/Applications/Firefox.app/Contents/MacOS/firefox'
-
+'''
+Selenium Configurations
+'''
 TASK_WAIT_TIMEOUT = 3 * 1000
-
 MAX_THREAD_COUNT = 1
-
-APP_CONFIG_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'app-config.json')
-
-BAIDU_COOKIE_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'baidu-cookie.json')
-# '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
-# COOKIE_PATH = '/Users/cc/Desktop/sobookscrawler/bin/baidu-cookie.json'
-DOUBAN_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), '..', 'bin', 'douban-cookie.json')
-
+FIREFOX_BINARY_PATH = '/Applications/Firefox.app/Contents/MacOS/firefox'
 if 'windows' == platform.system().lower():
 	GECKO_EXECUTABLE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'thirdparty', 'geckodriver.exe')
 else:
 	GECKO_EXECUTABLE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'thirdparty', 'geckodriver')
 print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
 
-SOBOOKS_VALIDATE_CODE = '20190808'
+'''
+Cookies Files
+'''
+BAIDU_COOKIE_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'baidu-cookie.json')
+DOUBAN_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), '..', 'bin', 'douban-cookie.json')
 
+'''
+App Configs
+'''
+# 是否启用本地文件存储 App-Configs 信息?
+USE_LOCAL_APP_CONFIGS = not True
+# Via local file
+APP_CONFIG_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'app-config.json')
+# Via Aliyun ACM
+ACM_SNAPSHOT_DIR = os.path.join(path_util.get_app_path(), '..', 'bin', 'acm-snapshot')
+ACM_ENDPOINT = 'acm.aliyun.com'
+ACM_NAMESPACE = 'Leave your namespace here.'
+ACM_ACCESS_KEY = 'Leave your access key here.'
+ACM_SECRET_KEY = 'Leave your secret key.'
+ACM_ENV = 'prd'
+
+'''
+Validate Code
+'''
+SOBOOKS_VALIDATE_CODE = '20190808'
 
 # ----------
 # DO NOT MODIFY THE INFOMATIONS BELOW
 # ----------
-def save_app_config(app_config_dict):
-	# Arguments
-	if not app_config_dict:
-		raise ValueError('Invalid argument(s) `app_config`.')
-
-	with open(APP_CONFIG_PATH, 'w+') as file_handler:
-		json_string = json.dumps(app_config_dict)
-		file_handler.write(json_string)
-
-	pass
-
-
-def load_app_config() -> dict:
-	# Initialize the `app-config.json` if it not exists.
-	if not os.path.exists(APP_CONFIG_PATH):
-		def _init_app_config_():
-			return {
-				'since_date': {
-					'previous_date': None,
-					'current_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f'),
-				}
-			}
-
-		with open(APP_CONFIG_PATH, 'x') as file_handler:
-			json_string = json.dumps(_init_app_config_())
-			file_handler.write(json_string)
-
-	# Load the `app-config.json` file from local disk.
-	app_config = None
-	with open(APP_CONFIG_PATH, 'r+') as file_handler:
-		lines = file_handler.readline()
-		app_config = json.loads(lines)
-
-	return app_config

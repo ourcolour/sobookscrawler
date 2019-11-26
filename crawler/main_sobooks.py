@@ -19,40 +19,19 @@
 '''
 __author__ = 'cc'
 
-import os
 from datetime import datetime, date
 
 import click
 
 import crawler.configs as cfg
+from crawler.AppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfigLoader, SINCE_DATE_FORMAT
 from crawler.services.baidu_yun_service import BaiduYunService
 from crawler.services.sobooks_crawler_service import SobooksCrawlerExecutor
-from website.utils import path_util
 
-# Status files
-# MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 'database.cfg.py')
-
-APP_CONFIG = cfg.load_app_config()
-SINCE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+APP_CONFIG_LOADER: AppConfigLoader = AliACMAppConfigLoader(env=cfg.ACM_ENV) if not cfg.USE_LOCAL_APP_CONFIGS else FileAppConfigLoader(env=cfg.ACM_ENV)
 
 
 def fetch_from_sobooks_site(since_date=None):
-	def _save_since_date_into_app_config_():
-		new_app_config = APP_CONFIG.copy()
-		new_app_config['since_date']['previous_date'] = APP_CONFIG['since_date']['current_date']
-		new_app_config['since_date']['current_date'] = datetime.now().strftime(SINCE_DATE_FORMAT)
-		cfg.save_app_config(new_app_config)
-
-	def _load_since_date_from_app_config_():
-		# Parse `since_date` value from `APP_CONFIG` dict.
-		since_date = APP_CONFIG['since_date']['current_date']
-
-		# Convert to date type.
-		if not isinstance(since_date, date):
-			since_date = datetime.strptime(since_date, SINCE_DATE_FORMAT).date()
-
-		return since_date
-
 	# urls = []
 	# SobooksCrawlerExecutor.new_range_tasks_by_detail_page_urls(detail_page_urls=urls)
 	# return
@@ -62,7 +41,9 @@ def fetch_from_sobooks_site(since_date=None):
 
 	# Arguments
 	if not since_date:
-		since_date = _load_since_date_from_app_config_()
+		since_date = APP_CONFIG_LOADER.load_last_fetch()['current_date']
+
+	# Convert to date type.
 	if not isinstance(since_date, date):
 		since_date = datetime.strptime(since_date, SINCE_DATE_FORMAT).date()
 
@@ -102,7 +83,7 @@ def fetch_from_sobooks_site(since_date=None):
 		svs.save_many(new_download_task_list, netdisk_folder_name=netdisk_folder_name)
 
 	# Update `APP_CONFIG` with new `since_date` value
-	_save_since_date_into_app_config_()
+	APP_CONFIG_LOADER.update_last_fetch()
 
 
 @click.command()

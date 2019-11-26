@@ -34,7 +34,7 @@ DEFAULT_TIMEOUT = 3 * 1000
 
 
 class BaseWebDriverService(object):
-	_user_agent = UserAgent().Firefox
+	_user_agent = UserAgent(verify_ssl=False).Firefox
 	# _user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:67.0) Gecko/20100101 Firefox/67.0'
 
 	_protocol = None

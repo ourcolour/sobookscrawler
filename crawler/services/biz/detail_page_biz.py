@@ -25,6 +25,7 @@ from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
+import crawler.configs as cfg
 from crawler.entities.download_task_model import DownloadTaskModel
 
 
@@ -54,9 +55,12 @@ class DetailPageBiz:
 				pass
 
 		if not secret_element:
-			dir_path = '/Users/cc/Desktop'
-			file_name = datetime.now().strftime('%Y%m%d_%H:%M:%S.%f')
-			snapshot = os.path.join(dir_path, file_name)
+			# Create `screen-shot` folder if not existed
+			if not os.path.exists(cfg.SCREEN_SHOT_PATH):
+				os.makedirs(cfg.SCREEN_SHOT_PATH)
+			# Capture error screen
+			file_name = datetime.now().strftime('%Y%m%d_%H:%M:%S_%f') + '.png'
+			snapshot = os.path.join(cfg.SCREEN_SHOT_PATH, file_name)
 			driver.get_screenshot_as_file(snapshot)
 
 			raise ValueError('The e-secret element not found when parsing page url: {}'.format(driver.current_url))

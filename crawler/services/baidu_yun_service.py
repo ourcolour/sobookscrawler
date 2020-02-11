@@ -294,3 +294,15 @@ class BaiduYunService(BaseWebDriverService, BaseMongodbService):
 		print('------------------')
 		print('Batch saving task finished with: {} success(es), {} failure(s).'.format(len(succeeded_list), len(failed_list)))
 		print('------------------')
+
+		# Print the failure tasks
+		total = len(failed_list)
+		for idx, failed_task in enumerate(failed_list):
+			print('{:>3d}/{:>3d} [{}] 《{}》 <{}> - {}'.format(
+				idx + 1,
+				total,
+				'ERR',
+				failed_task.title,
+				failed_task.secret,
+				failed_task.baiduUrl
+			))

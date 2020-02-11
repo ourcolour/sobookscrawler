@@ -62,8 +62,8 @@ def RANDOM_PROXY(return_tuple=True):
 '''
 MongoDB
 '''
-# MONGO_HOST = 'mongodb://127.0.0.1:27018' #'192.168.2.91'
-MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
+MONGO_HOST = 'mongodb://127.0.0.1:27018'  # '192.168.2.91'
+# MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
 MONGO_PORT = 27018
 MONGO_CONNECTION_NAME = me.DEFAULT_CONNECTION_NAME
 MONGO_DATABASE = 'DoubanBookApi'
@@ -83,21 +83,20 @@ else:
 print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
 
 '''
-Cookies Files
-'''
-BAIDU_COOKIE_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'baidu-cookie.json')
-DOUBAN_COOKIE_PATH = os.path.join(os.path.dirname(sys.argv[0]), '..', 'bin', 'douban-cookie.json')
-
-'''
 App Configs
 '''
+APP_BIN_PATH = os.path.join(path_util.get_app_path(), '..', 'bin')
+SCREEN_SHOT_PATH = os.path.join(APP_BIN_PATH, 'screen-shot')
+
 # 是否启用本地文件存储 App-Configs 信息?
 USE_LOCAL_APP_CONFIGS = not True
 # Via local file
-APP_CONFIG_PATH = os.path.join(path_util.get_app_path(), '..', 'bin', 'app-config.json')
+APP_CONFIG_PATH = os.path.join(APP_BIN_PATH, 'app-config.json')
 # Via Aliyun ACM
-ACM_SNAPSHOT_DIR = os.path.join(path_util.get_app_path(), '..', 'bin', 'acm-snapshot')
+ACM_SNAPSHOT_DIR = os.path.join(APP_BIN_PATH, 'acm-snapshot')
 ACM_ENDPOINT = 'acm.aliyun.com'
+#
+ACM_ENV = 'prd'
 ACM_NAMESPACE = 'Leave your namespace here.'
 ACM_ACCESS_KEY = 'Leave your access key here.'
 ACM_SECRET_KEY = 'Leave your secret key.'
@@ -106,7 +105,7 @@ ACM_ENV = 'prd'
 '''
 Validate Code
 '''
-SOBOOKS_VALIDATE_CODE = '20190808'
+SOBOOKS_VALIDATE_CODE = '20191212'
 
 # ----------
 # DO NOT MODIFY THE INFOMATIONS BELOW

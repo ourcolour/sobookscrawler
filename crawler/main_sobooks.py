@@ -80,7 +80,7 @@ def fetch_from_sobooks_site(since_date=None):
 			# if task.title in name_arr:
 			new_download_task_list.append(task)
 		print('Total count: {}'.format(len(new_download_task_list)))
-		svs.save_many(new_download_task_list, netdisk_folder_name=netdisk_folder_name)
+		svs.save_many(new_download_task_list, netdisk_folder_name=netdisk_folder_name, skip=0)
 
 	# Update `APP_CONFIG` with new `since_date` value
 	APP_CONFIG_LOADER.update_last_fetch()

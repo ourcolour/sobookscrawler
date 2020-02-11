@@ -89,7 +89,7 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 						current,
 						total,
 						code.upper(),
-						'Record skipped, because of no download url found.',
+						'Record skipped, got errors when fetching page: {}.'.format(url),
 					))
 				else:
 					fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
@@ -163,7 +163,7 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 							current,
 							total,
 							code.upper(),
-							'Record skipped, because of no download url found.',
+							'Record skipped, got errors when fetching page: {}.'.format(url),
 						))
 					else:
 						fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
@@ -187,7 +187,7 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 						error += 1
 
 					# Check `publishTime`
-					if download_task.publishTime.date() < to_date:
+					if 'e' != code and download_task.publishTime.date() < to_date:
 						print('Found invalid publishTime `{}` in list-page #{}, exit loop ...'.format(
 							download_task.publishTime.strftime('%Y-%m-%d'),
 							list_page_no
@@ -252,7 +252,7 @@ class SobooksCrawlerExecutor(BaseWebDriverService):
 								current,
 								total,
 								code.upper(),
-								'Record skipped, because of no download url found.',
+								'Record skipped, got errors when fetching page: {}.'.format(url),
 							))
 						else:
 							fmt = 'Thread#{:>2} - {:>' + str(bits) + 'd}/{:>' + str(bits) + 'd} [{}]   《{}》 - {}'
@@ -352,23 +352,26 @@ class SobooksCrawlerService(BaseWebDriverService, BaseMongodbService):
 		# 	return result
 
 		# Fetch detail page
-		download_task = DetailPageBiz.get_book_info(driver=self.driver, wait=self.wait, validate_code=validate_code)
+		try:
+			download_task = DetailPageBiz.get_book_info(driver=self.driver, wait=self.wait, validate_code=validate_code)
 
-		# Check download url
-		if self._has_download_url(download_task):
-			# Check duplicate records via fields: baiduUrl or ctUrl
-			old_download_task = DownloadTaskMongoBiz.find_by_url(download_task.baiduUrl, download_task.ctUrl, download_task.referer)
-			if None is old_download_task:
-				# Not exists do insert
-				result = DownloadTaskMongoBiz.add(download_task)
+			# Check download url
+			if self._has_download_url(download_task):
+				# Check duplicate records via fields: baiduUrl or ctUrl
+				old_download_task = DownloadTaskMongoBiz.find_by_url(download_task.baiduUrl, download_task.ctUrl, download_task.referer)
+				if None is old_download_task:
+					# Not exists do insert
+					result = DownloadTaskMongoBiz.add(download_task)
 
-				return (result, 'a')
+					return (result, 'a')
+				else:
+					# Exists do replace(update)
+					result = DownloadTaskMongoBiz.update_by_model(old_download_task, download_task)
+
+					return (result, 'u')
 			else:
-				# Exists do replace(update)
-				result = DownloadTaskMongoBiz.update_by_model(old_download_task, download_task)
-
-				return (result, 'u')
-		else:
+				return (result, 'e')
+		except Exception as ex:
 			return (result, 'e')
 
 	# Return true if found any download url.

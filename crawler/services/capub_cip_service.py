@@ -81,7 +81,7 @@ class CapubCipService(BaseWebDriverService):
 			# Fill the form with ISBN13 infomation
 			self.driver.find_element_by_xpath('//input[@name="ISBN"]').send_keys(formated_isbn13)
 			self.driver.find_element_by_link_text('查 询').click()
-
+			
 			# Fetch the cip informations
 			cip_link_list = self.driver.find_elements_by_link_text('CIP')
 			cip_id_list = list()

@@ -48,9 +48,13 @@ def command_dispatcher(action, isbn, limit):
             # added by CC.Yao 2020/05/25
             svs = LibraryShCipService()
 
-            s = svs.get_cip_by_isbn13(isbn13=isbn)
-            print('{} > {}'.format(isbn, s))
-
+            isbn_list = []
+            if isbn:
+                isbn_list.append(isbn)
+                pass
+            for idx, isbn in enumerate(isbn_list):
+                s = svs.get_cip_by_isbn13(isbn13=isbn)
+                print('{} {}'.format(isbn, s))
             pass
         elif 'addtask' == action.lower():
             isbn_list = isbn.replace(' ', '').split(',')

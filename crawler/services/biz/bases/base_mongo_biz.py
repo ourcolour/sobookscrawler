@@ -25,7 +25,7 @@ from typing import TypeVar, Generic
 from bson import ObjectId
 from mongoengine.base import TopLevelDocumentMetaclass
 
-from crawler.entities.base_model import BaseModel
+from entities.base_model import BaseModel
 
 # Definations
 T = TypeVar('T', BaseModel, None)

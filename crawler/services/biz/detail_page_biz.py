@@ -25,8 +25,8 @@ from datetime import datetime
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
-import crawler.configs as cfg
-from crawler.entities.download_task_model import DownloadTaskModel
+import configs as cfg
+from entities.download_task_model import DownloadTaskModel
 
 
 class DetailPageBiz:

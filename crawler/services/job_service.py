@@ -19,16 +19,16 @@
 '''
 __author__ = 'cc'
 
-from crawler.entities.job_model import S_READY, S_FAILED, S_FINISHED
-from crawler.services.bases.base_mongodb_service import BaseMongodbService
-from crawler.services.biz.job_mongo_biz import JobMongoBiz
-from crawler.services.douban_book_service import DoubanBookService
+from entities.job_model import S_READY, S_FAILED, S_FINISHED
+from services.bases.base_mongodb_service import BaseMongodbService
+from services.biz.job_mongo_biz import JobMongoBiz
+from services.douban_book_service import DoubanBookService
 
 
 class JobService(BaseMongodbService):
 
 	def test(self):
-		# from crawler.entities.crawler_task_model import CrawlerTaskModel
+		# from entities.crawler_task_model import CrawlerTaskModel
 		# rs = CrawlerTaskModel.objects(__raw__={})
 		rs = JobMongoBiz.count(criteria={})
 		print(rs.count())

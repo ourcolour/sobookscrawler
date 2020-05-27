@@ -24,8 +24,8 @@ import os
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 
-import crawler.configs as cfg
-from crawler.utils.aliyun_acm_util import AliyunACM
+import configs as cfg
+from utils.aliyun_acm_util import AliyunACM
 
 SINCE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 

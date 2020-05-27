@@ -21,7 +21,7 @@ __authors__ = 'cc'
 
 import bson
 from bson import json_util
-from crawler.entities.base_entity import BaseEntity
+from entities.base_entity import BaseEntity
 
 
 class DownloadTask(BaseEntity):

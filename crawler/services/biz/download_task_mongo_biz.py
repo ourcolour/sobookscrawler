@@ -19,8 +19,8 @@
 '''
 __author__ = 'cc'
 
-from crawler.entities.download_task_model import DownloadTaskModel
-from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
+from entities.download_task_model import DownloadTaskModel
+from services.biz.bases.base_mongo_biz import BaseMongoBiz
 
 
 class DownloadTaskMongoBiz(BaseMongoBiz[DownloadTaskModel]):

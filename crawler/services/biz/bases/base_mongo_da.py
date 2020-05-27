@@ -21,7 +21,7 @@ __author__ = 'cc'
 
 import pymongo as mgo
 
-import crawler.configs as cfg
+import configs as cfg
 
 DEFAULT_MONGO_HOST = 'localhost'
 DEFAULT_MONGO_PORT = 27017

@@ -21,7 +21,7 @@ __author__ = 'cc'
 
 import mongoengine as me
 
-import crawler.configs as cfg
+import configs as cfg
 
 
 class BaseMongodbService(object):

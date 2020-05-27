@@ -17,7 +17,7 @@
 2.  TO-DO
 +-------------------------------------------------
 '''
-from crawler.services.bases.base_mongodb_service import BaseMongodbService
+from services.bases.base_mongodb_service import BaseMongodbService
 
 __author__ = 'cc'
 
@@ -31,9 +31,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from crawler import configs as cfg
-from crawler.services.bases.base_web_driver_service import BaseWebDriverService
-from crawler.services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
+import configs as cfg
+from services.bases.base_web_driver_service import BaseWebDriverService
+from services.biz.download_task_mongo_biz import DownloadTaskMongoBiz
 
 
 class BaiduYunBiz(object):

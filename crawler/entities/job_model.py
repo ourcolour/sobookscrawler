@@ -21,7 +21,7 @@ __author__ = 'cc'
 
 from mongoengine import *
 
-from crawler.entities.base_model import BaseModel
+from entities.base_model import BaseModel
 
 S_BASE = -2
 S_DRAFT = -1

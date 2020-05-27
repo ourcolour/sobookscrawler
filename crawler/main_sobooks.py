@@ -23,10 +23,10 @@ from datetime import datetime, date
 
 import click
 
-import crawler.configs as cfg
-from crawler.AppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfigLoader, SINCE_DATE_FORMAT
-from crawler.services.baidu_yun_service import BaiduYunService
-from crawler.services.sobooks_crawler_service import SobooksCrawlerExecutor
+import configs as cfg
+fromAppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfigLoader, SINCE_DATE_FORMAT
+from services.baidu_yun_service import BaiduYunService
+from services.sobooks_crawler_service import SobooksCrawlerExecutor
 
 APP_CONFIG_LOADER: AppConfigLoader = AliACMAppConfigLoader(env=cfg.ACM_ENV) if not cfg.USE_LOCAL_APP_CONFIGS else FileAppConfigLoader(env=cfg.ACM_ENV)
 

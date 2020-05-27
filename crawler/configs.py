@@ -26,7 +26,7 @@ import sys
 
 import mongoengine as me
 
-from crawler.utils import path_util
+from utils import path_util
 
 '''
 Http Proxy

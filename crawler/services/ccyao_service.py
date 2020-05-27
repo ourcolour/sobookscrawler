@@ -23,8 +23,8 @@ from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver import Proxy
 from selenium.webdriver.common.proxy import ProxyType
 
-from crawler import configs
-from crawler.services.bases.base_web_driver_service import BaseWebDriverService
+import configs
+from services.bases.base_web_driver_service import BaseWebDriverService
 
 
 class CCYaoService(BaseWebDriverService):

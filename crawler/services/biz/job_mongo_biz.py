@@ -23,8 +23,8 @@ from datetime import datetime
 
 from bson import ObjectId
 
-from crawler.entities.job_model import JobModel, S_READY, S_DRAFT, S_RUNNING, Execution
-from crawler.services.biz.bases.base_mongo_biz import BaseMongoBiz
+from entities.job_model import JobModel, S_READY, S_DRAFT, S_RUNNING, Execution
+from services.biz.bases.base_mongo_biz import BaseMongoBiz
 
 
 class JobMongoBiz(BaseMongoBiz[JobModel]):

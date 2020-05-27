@@ -18,3 +18,20 @@
 +-------------------------------------------------
 '''
 __author__ = 'cc'
+
+# Base dir
+import os
+import sys; print('Python %s on %s' % (sys.version, sys.platform))
+
+print('SYS.PATH={}'.format(sys.path))
+
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+WORK_DIR = os.path.join(CUR_DIR, '..')
+print(CUR_DIR)
+print(WORK_DIR)
+sys.path.extend([CUR_DIR, WORK_DIR])
+
+import crawler.entities
+import crawler.jobs
+import crawler.services
+import crawler.utils

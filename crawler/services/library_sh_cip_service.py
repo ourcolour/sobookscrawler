@@ -26,8 +26,8 @@ from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver import Proxy
 from selenium.webdriver.common.proxy import ProxyType
 
-from crawler import configs
-from crawler.services.bases.base_web_driver_service import BaseWebDriverService
+import configs
+from services.bases.base_web_driver_service import BaseWebDriverService
 
 
 class LibraryShCipService(BaseWebDriverService):
@@ -103,20 +103,5 @@ class LibraryShCipService(BaseWebDriverService):
             pass
         except Exception as ex:
             print('[ERR] url: {}. {}'.format(self.driver.current_url, ex))
-
-        return result
-
-    def _get_cip_detail_by_cip_id(self, cip_id: str) -> str:
-        result = None
-
-        try:
-            # Visit cip detail page
-            self.driver.get(
-                self.build_url(path='/pdm/business/queryCipAction.do?method=doSrchDetail&cipid={}'.format(cip_id)))
-            td_cip = self.driver.find_element_by_xpath(
-                '//table[@class="bizform"]/tbody/tr/td[contains(text(),"中图法分类")]/following-sibling::td')
-            result = td_cip.text
-        except Exception as ex:
-            print(ex)
 
         return result

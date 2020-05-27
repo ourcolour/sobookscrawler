@@ -22,8 +22,10 @@ __author__ = 'cc'
 # Base dir
 import os, sys
 import click
+import site
 
-sys.path.append('/Users/CC/opt/anaconda3/lib/python3.7/site-packages')
+print('WORK-DIR: {}'.format(os.getcwd()))
+print('SITE-PACKAGE: {}'.format(site.getsitepackages()))
 
 from services.job_service import JobService
 from services.library_sh_cip_service import LibraryShCipService
@@ -36,8 +38,7 @@ MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 
 
 @click.command()
 @click.option('--action', '-a', type=click.Choice(['addtask', 'runtask', 'querycip']))
-@click.option('--isbn', type=str,
-              default=None)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
+@click.option('--isbn', type=str, default=None)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
 @click.option('--limit', type=click.IntRange(1, 50, clamp=True),
               default=10)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
 def command_dispatcher(action, isbn, limit):

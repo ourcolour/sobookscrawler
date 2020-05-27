@@ -27,7 +27,7 @@ from selenium import webdriver
 from selenium.webdriver import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
 
-import crawler.configs as cfg
+import configs as cfg
 
 DEFAULT_PROTOCOL = 'https'
 DEFAULT_TIMEOUT = 3 * 1000
@@ -83,7 +83,9 @@ class BaseWebDriverService(object):
 		return self
 
 	def __exit__(self, *args, **kwargs):
-		self._driver.quit()
+		if self._driver:
+			self._driver.quit()
+			pass
 
 	@abstractmethod
 	def prepare_desired_capabilities(self):

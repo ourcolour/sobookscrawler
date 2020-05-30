@@ -62,9 +62,9 @@ def RANDOM_PROXY(return_tuple=True):
 '''
 MongoDB
 '''
-MONGO_HOST = 'mongodb://127.0.0.1:27018'  # '192.168.2.91'
+MONGO_HOST = 'mongodb://127.0.0.1:27017'  # '192.168.2.91'
 # MONGO_HOST = 'mongodb://mongo01.dev.xjh.com:27017,mongo02.dev.xjh.com:27017,mongo03.dev.xjh.com:27017/?replicaSet=xjh'
-MONGO_PORT = 27018
+MONGO_PORT = 27017
 MONGO_CONNECTION_NAME = me.DEFAULT_CONNECTION_NAME
 MONGO_DATABASE = 'DoubanBookApi'
 # MONGO_COLLECTION = 'cloud_storage'
@@ -105,8 +105,9 @@ ACM_ENV = 'prd'
 '''
 Validate Code
 '''
-SOBOOKS_VALIDATE_CODE = '20191212'
+SOBOOKS_VALIDATE_CODE = '512512'
 
 # ----------
 # DO NOT MODIFY THE INFOMATIONS BELOW
 # ----------
+BAIDU_COOKIE_PATH = os.path.join(APP_BIN_PATH, 'baidu-config.json')

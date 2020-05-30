@@ -24,7 +24,7 @@ from datetime import datetime, date
 import click
 
 import configs as cfg
-fromAppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfigLoader, SINCE_DATE_FORMAT
+from AppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfigLoader, SINCE_DATE_FORMAT
 from services.baidu_yun_service import BaiduYunService
 from services.sobooks_crawler_service import SobooksCrawlerExecutor
 
@@ -77,7 +77,6 @@ def fetch_from_sobooks_site(since_date=None):
 		print('Total count: {}'.format(len(download_task_list)))
 		new_download_task_list = list()
 		for task in download_task_list:
-			# if task.title in name_arr:
 			new_download_task_list.append(task)
 		print('Total count: {}'.format(len(new_download_task_list)))
 		svs.save_many(new_download_task_list, netdisk_folder_name=netdisk_folder_name, skip=0)

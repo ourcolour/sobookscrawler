@@ -80,8 +80,8 @@ if 'windows' == platform.system().lower():
 	GECKO_EXECUTABLE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'thirdparty', 'geckodriver.exe')
 else:
 	GECKO_EXECUTABLE_PATH = os.path.join(os.path.dirname(sys.argv[0]), 'thirdparty', 'geckodriver')
-print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
-
+# print('Geckodriver: {}'.format(GECKO_EXECUTABLE_PATH))
+BROWSER_HEADLESS_MODE = False
 '''
 App Configs
 '''
@@ -111,3 +111,4 @@ SOBOOKS_VALIDATE_CODE = '512512'
 # DO NOT MODIFY THE INFOMATIONS BELOW
 # ----------
 BAIDU_COOKIE_PATH = os.path.join(APP_BIN_PATH, 'baidu-config.json')
+DOUBAN_COOKIE_PATH = os.path.join(APP_BIN_PATH, 'douban-config.json')

@@ -23,6 +23,8 @@ __author__ = 'cc'
 import os, sys
 import click
 import site
+import time
+import random
 
 print('WORK-DIR: {}'.format(os.getcwd()))
 print('SITE-PACKAGE: {}'.format(site.getsitepackages()))
@@ -38,7 +40,8 @@ MONGO_CFG_PATH = os.path.join(path_util.get_app_path(), 'resources', 'configs', 
 
 @click.command()
 @click.option('--action', '-a', type=click.Choice(['addtask', 'runtask', 'querycip']))
-@click.option('--isbn', type=str, default=None)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
+@click.option('--isbn', type=str,
+              default=None)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
 @click.option('--limit', type=click.IntRange(1, 50, clamp=True),
               default=10)  # '--action', '-a', type=str, type=click.Choice(['fetch', ], default='sobooks'))
 def command_dispatcher(action, isbn, limit):
@@ -51,19 +54,30 @@ def command_dispatcher(action, isbn, limit):
             # A new function for cip info querying
             # added by CC.Yao 2020/05/25
             with LibraryShCipService() as svs:
-                isbn_list = []
+                isbn_list = None
                 if isbn:
-                    isbn_list.append(isbn)
-                    pass
+                    isbn_list = isbn.replace(' ', '').split(',')
+                else:
+                    isbn_list = list()
+
                 for idx, isbn in enumerate(isbn_list):
-                    s = svs.get_cip_by_isbn13(isbn13=isbn)
-                    print('{} {}'.format(isbn, s))
+                    result_list = svs.get_cip_by_isbn13(isbn13=isbn)
+
+                    # Convert list() to string like: XXX/tabYYY/tabZZZ
+                    result_string = ''
+                    for idx, cur in enumerate(result_list):
+                        if idx > 0:
+                            result_string += '/t'
+                        result_string += cur
+
+                    wait_sec = float(random.Random().randint(500, 3000)) / 1000.0
+                    print('{}\t{}\t{}'.format(isbn, result_string, wait_sec))
+                    time.sleep(wait_sec)
                 pass
             pass
         elif 'addtask' == action:
             isbn_list = isbn.replace(' ', '').split(',')
-            for isbn in isbn_list:
-                cts.add_task(isbn)
+            cts.add_task(isbn_list)
             pass
         elif 'runtask' == action:
             cts.run_task(limit=limit)

@@ -52,12 +52,14 @@ class DoubanBookBiz(object):
         if os.path.exists(configs.DOUBAN_COOKIE_PATH):
             try:
                 # Load cookie
-                with open(configs.BAIDU_COOKIE_PATH) as file_handler:
+                with open(configs.DOUBAN_COOKIE_PATH) as file_handler:
                     # Load cookies from local json file
                     cookies = json.loads(file_handler.readline())
                     # Assign cookies to web driver
                     driver.delete_all_cookies()
                     for cookie in cookies:
+                        if cookie['domain'].find('www.') > -1:
+                            cookie['domain'] = cookie['domain'].replace('www.', '.')
                         driver.add_cookie(cookie)
                     # Refresh after cookies loaded
                     driver.get(driver.current_url)
@@ -71,17 +73,29 @@ class DoubanBookBiz(object):
         return result
 
     @classmethod
-    def _has_logged_in(cls, driver, wait) -> bool:
-        # Check via page source
-        return len(driver.find_elements_by_xpath('//div[@class="top-nav-info"]/a[@class="nav-login"]')) > 0
-
-    @classmethod
-    def login(cls, driver, wait, start_page=None) -> bool:
+    def handle_ip_error(cls, driver, wait) -> bool:
         result = False
 
-        # Redirect to login page
-        # driver.get('http://ccyao.net')
-        driver.get(start_page)
+        # Check via page source
+        got_error = -1 < driver.current_url.find("sec.douban.com")
+
+        if got_error:
+            # Do log in action
+            result = cls.login(driver, wait, start_page=driver.current_url)
+
+        return result
+
+    @classmethod
+    def _has_logged_in(cls, driver, wait) -> bool:
+        return len(driver.find_elements_by_link_text('提醒')) > 0
+
+    @classmethod
+    def login(cls, driver, wait, start_page=None, login_page=None) -> bool:
+        result = False
+
+        # Redirect to start page
+        if start_page:
+            driver.get(start_page)
 
         # Load cookies
         cls._load_cookies(driver, wait)
@@ -93,21 +107,26 @@ class DoubanBookBiz(object):
         # go on log-in action and save cookies
         if not result:
             # Redirect to login page
-            driver.get(driver.current_url)
+            if login_page:
+                driver.get(login_page)
 
             # New a customize wait obj for user manually login action,
             # and set maximum wait timeout to 120 seconds.
             login_wait = WebDriverWait(driver, 120)
 
             # Wait until user log-in manual
-            login_wait.until_not(
-                EC.presence_of_element_located(By.XPATH, '//div[@class="top-nav-info"]/a[@class="nav-login"]'))
+            login_wait.until(EC.presence_of_element_located((By.LINK_TEXT, '提醒')))
 
             # Save cookie to local json file
             cls._save_cookies(driver, wait)
 
             # Check login status again
             result = cls._has_logged_in(driver, wait)
+            # If logged in, redirect to start page
+            if result:
+                # Redirect to start page
+                if start_page:
+                    driver.get(start_page)
 
         return result
 
@@ -318,7 +337,11 @@ class DoubanBookBiz(object):
                         ref_book.pubdate = datetime.strptime(value, fmt)
                     pass
                 elif '页数' == key:
-                    ref_book.pages = value  # int(value)
+                    m = re.match(r'^(?P<pages>\d+)(?:\D*)$', value.strip())
+                    if m:
+                        ref_book.pages = int(m.groupdict()['pages'])
+                    else:
+                        ref_book.pages = 0
                 elif '定价' == key:
                     # print('定价: {}'.format(value))
                     m = re.match(r'\d+(?:.\d+)?', value.strip())

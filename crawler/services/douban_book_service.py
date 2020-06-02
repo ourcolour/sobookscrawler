@@ -128,6 +128,12 @@ class DoubanBookService(BaseWebDriverService):
             'referer': self.driver.current_url,
         }
 
+    def login(self) -> bool:
+        start_page = self.build_url()
+        # https://accounts.douban.com/passport/login
+        login_page = self.build_url(protocol='https', domain='accounts.douban.com', path='passport/login')
+        return DoubanBookBiz.login(self.driver, self.wait, start_page=start_page, login_page=login_page)
+
     def get_book_list(self, book_id_list):
         result = list()
 
@@ -194,6 +200,9 @@ class DoubanBookService(BaseWebDriverService):
         try:
             # Visit info page
             self.driver.get(self.build_url(path='/subject/{}/'.format(book_id)))
+
+            # Check ip error
+            DoubanBookBiz.handle_ip_error(self.driver, self.wait)
 
             # New book instance
             result = BookModel()

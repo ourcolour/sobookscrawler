@@ -32,7 +32,7 @@ SINCE_DATE_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
 
 class AppConfigLoader(metaclass=ABCMeta):
 	@abstractmethod
-	def __init__(self, env=cfg.ACM_ENV):
+	def __init__(self, env=cfg.APP_ENV):
 		self.env = env
 
 	@abstractmethod
@@ -58,7 +58,7 @@ class AppConfigLoader(metaclass=ABCMeta):
 
 class FileAppConfigLoader(AppConfigLoader):
 
-	def __init__(self, config_path: str = cfg.APP_CONFIG_PATH, env=cfg.ACM_ENV):
+	def __init__(self, config_path: str = cfg.APP_CONFIG_PATH, env=cfg.APP_ENV):
 		self.env = env
 		self.config_path = config_path
 
@@ -132,7 +132,7 @@ class FileAppConfigLoader(AppConfigLoader):
 
 class AliACMAppConfigLoader(AppConfigLoader):
 
-	def __init__(self, env=cfg.ACM_ENV):
+	def __init__(self, env=cfg.APP_ENV):
 		self.env = env
 		self._acm = AliyunACM(endpoint=cfg.ACM_ENDPOINT, namespace=cfg.ACM_NAMESPACE, access_key=cfg.ACM_ACCESS_KEY, secret_key=cfg.ACM_SECRET_KEY)
 		self._acm.set_options(snapshot_base=cfg.ACM_SNAPSHOT_DIR)

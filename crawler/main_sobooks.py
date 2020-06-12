@@ -28,7 +28,7 @@ from AppConfigLoader import AppConfigLoader, AliACMAppConfigLoader, FileAppConfi
 from services.baidu_yun_service import BaiduYunService
 from services.sobooks_crawler_service import SobooksCrawlerExecutor
 
-APP_CONFIG_LOADER: AppConfigLoader = AliACMAppConfigLoader(env=cfg.ACM_ENV) if not cfg.USE_LOCAL_APP_CONFIGS else FileAppConfigLoader(env=cfg.ACM_ENV)
+APP_CONFIG_LOADER: AppConfigLoader = AliACMAppConfigLoader(env=cfg.APP_ENV) if not cfg.USE_LOCAL_APP_CONFIGS else FileAppConfigLoader(env=cfg.APP_ENV)
 
 
 def fetch_from_sobooks_site(since_date=None):

@@ -88,19 +88,23 @@ App Configs
 APP_BIN_PATH = os.path.join(path_util.get_app_path(), '..', 'bin')
 SCREEN_SHOT_PATH = os.path.join(APP_BIN_PATH, 'screen-shot')
 
-# 是否启用本地文件存储 App-Configs 信息?
-USE_LOCAL_APP_CONFIGS = not True
-# Via local file
+# ----------------------------------
+# Use local config file `app-configs.json` (= True)
+# or
+# load settings from AliACM service. ( =False)
+# ----------------------------------
+USE_LOCAL_APP_CONFIGS = True
+APP_ENV = 'prd'
+# 1. If use local file:
 APP_CONFIG_PATH = os.path.join(APP_BIN_PATH, 'app-config.json')
-# Via Aliyun ACM
+# 2. If use AliACM:
 ACM_SNAPSHOT_DIR = os.path.join(APP_BIN_PATH, 'acm-snapshot')
 ACM_ENDPOINT = 'acm.aliyun.com'
-#
-ACM_ENV = 'prd'
+# --- AliACM Access Token BEGIN ---
 ACM_NAMESPACE = 'Leave your namespace here.'
 ACM_ACCESS_KEY = 'Leave your access key here.'
 ACM_SECRET_KEY = 'Leave your secret key.'
-ACM_ENV = 'prd'
+# --- AliACM Access Token  END  ---
 
 '''
 Validate Code

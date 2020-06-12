@@ -1,13 +1,17 @@
 # sobookscrawler
 
+!!! IMPORTANT !!!
+---
+**Using the douban features may cause your account to be blocked.**
+
 Environment
 --
 
 MacOS X and later
 
-Python 3.X  and later
+Python 3.X and later
 
-MongoDB4.X  and later
+MongoDB4.X and later
 
 _(Optional) Aliyun ACM_
 

@@ -109,3 +109,4 @@ venv.bak/
 # Customize
 bin/
 geckodriver.log
+*.bak
